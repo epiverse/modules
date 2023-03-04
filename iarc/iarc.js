@@ -1,9 +1,3 @@
-if (typeof (Plotly) == 'undefined') {
-    let s = document.createElement('script')
-    s.src = 'https://cdn.plot.ly/plotly-2.16.1.min.js'
-    document.head.appendChild(s)
-}
-
 console.log('iarc.js loaded')
 
 /* Initializes object with default example parameters */
