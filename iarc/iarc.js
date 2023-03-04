@@ -16,6 +16,11 @@ console.log('iarc.js loaded')
  * @namespace iarc
  * @property {Function} causesGet - {@link iarc.causesGet}
  * @property {Function} causesGetAll - {@link iarc.causesGetAll}
+ * @property {Function} vizFillSelectCause - {@link iarc.vizFillSelectCause}
+ * @property {Function} vizFillSelectBy - {@link iarc.vizFillSelectBy}
+ * @property {Function} vizFillDescriptionTable - {@link iarc.vizFillDescriptionTable}
+ * @property {Function} vizChangePage - {@link iarc.vizChangePage}
+ * @property {Function} vizPlotSummary - {@link iarc.vizPlotSummary}
  * @property {Function} loadScript - {@link iarc.loadScript}
  */
 
@@ -106,6 +111,17 @@ iarc.causesGetAll= async function(cache=false){  // retrieve all causal data
     return dt
 }
 
+/** 
+* Fill options of a select tag with causes values
+*
+* @param {Object} objIarc IARC Library object
+* @param {string} idContainer ID of the html div that will be filled
+*
+* 
+* @example
+* let v = await Iarc()
+* iarc.vizFillSelectCause(v, 'selectCause')
+*/
 iarc.vizFillSelectCause = function(objIarc, idContainer){
     var keys = Object.keys(objIarc.data)
     var ht = '';
@@ -115,6 +131,17 @@ iarc.vizFillSelectCause = function(objIarc, idContainer){
     document.getElementById(idContainer).innerHTML=ht
 }
 
+/** 
+* Fill options of a select tag with dimension values
+*
+* @param {Object} objIarc IARC Library object
+* @param {string} idContainer ID of the html div that will be filled
+*
+* 
+* @example
+* let v = await Iarc()
+* iarc.vizFillSelectBy(v, 'selectDimension')
+*/
 iarc.vizFillSelectBy = function(objIarc, idContainer){
     var keys = []
     for (var i of Object.keys(objIarc.data) ){
@@ -135,6 +162,19 @@ iarc.vizFillSelectBy = function(objIarc, idContainer){
     document.getElementById(idContainer).innerHTML=ht
 }
 
+/** 
+* Fill table with available processed data gathered from IARC
+*
+* @param {string} cause Chosen cause
+* @param {string} by Chosen dimension
+* @param {Object} objIarc IARC Library object
+* @param {string} idContainer ID of the html div that will be filled
+*
+* 
+* @example
+* let v = await Iarc()
+* iarc.vizFillDescriptionTable('obesity', 'cancers', v, 'tableData')
+*/
 iarc.vizFillDescriptionTable = function(cause, by, objIarc, idContainer){
     filtered.style.display='none'
     console.log(objIarc.data)
@@ -196,6 +236,18 @@ iarc.vizFillDescriptionTable = function(cause, by, objIarc, idContainer){
     }
 }
 
+/** 
+* Change page of rendered data table
+*
+* @param {Object} objIarc IARC Library object
+* @param {number} start Page number
+*
+* 
+* @example
+* let v = await Iarc()
+* iarc.vizFillDescriptionTable('obesity', 'cancers', v, 'filtered')
+* iarc.vizChangePage(v, 4)
+*/
 iarc.vizChangePage = function(objIarc, start){
     var hits = objIarc.hits
     var itemsPage = 20
@@ -233,6 +285,19 @@ iarc.vizChangePage = function(objIarc, start){
     }   
 }
 
+/** 
+* Fill bar summary plot with available processed data containing descriptive numbers gathered from IARC
+*
+* @param {string} cause Chosen cause
+* @param {string} by Chosen dimension
+* @param {Object} objIarc IARC Library object
+* @param {string} idContainer ID of the html div that will be filled
+*
+* 
+* @example
+* let v = await Iarc()
+* iarc.vizPlotSummary('alcohol', 'countries', v, 'summary_plot')
+*/
 iarc.vizPlotSummary = function (cause, by, objIarc, idContainer){
     var hits = {}
     if( Object.keys(objIarc.data).includes(cause) ){
