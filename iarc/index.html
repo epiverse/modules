@@ -73,30 +73,14 @@
                                             <select id="causes" class="form-control mr-3 fields" style="width: 200px !important"> </select> 
                                             
                                             <label class="fields mr-2" style="text-align: right;" >By: </label>
-                                            <select id="by" class="form-control mr-3 fields" style="width: 200px !important" > </select>
+                                            <select id="by" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
                                             
-                                            <input class="btn btn-primary" type="button" onclick="filterData()" value="Filtrar" />
-                                      
+                                            <input class="btn btn-primary" type="button" id="bfilter" disabled onclick="filterData()" value="Filtrar" />
                                     </div>
                                     
                                     <div class="col-12"  id="summary_plot"> </div>
                                     
-                                    <div class="col-12 mt-3"  id="filtered" style="display: none;">
-                                        <table class="table table-striped" > 
-                                            <thead id="tableHeader" > 
-                                                <tr>
-                                                    <th>Name</th>
-                                                    <th>Description</th>
-                                                </tr>
-                                            </thead>
-                                            
-                                            <tbody id="tableBody" > </tbody>
-                                        </table>
-                                        
-                                        <nav aria-label="pagination">
-                                            <ul class="pagination" id="pagesContainer"> </ul>
-                                        </nav>
-                                    </div>
+                                    <div class="col-12 mt-3"  id="filtered" style="display: none;"> </div>
                                 
                                 </div>
                             </div>
@@ -142,6 +126,8 @@
                         
                         setTimeout( function () { 
                             iarc.vizFillSelectBy(objIarc, 'by');
+                            filterData();
+                            bfilter.disabled=false
                             
                         }, 10000)
                     } )
