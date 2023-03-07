@@ -64,8 +64,6 @@ let gmaps={}
 * var data = await gmaps.getPlacesData(v)
 */
 gmaps.getPlacesData = async (gobject) => {
-    info1.style.display='none'
-
     var container = document.getElementById("map")
     if(container==null){
         var s = document.createElement('div')
@@ -123,7 +121,6 @@ gmaps.getPlacesData = async (gobject) => {
             });
         }
     }
-    info1.style.display='block'
     
     return gobject.data_places
 }
@@ -139,8 +136,6 @@ gmaps.getPlacesData = async (gobject) => {
 * var data = await gmaps.plotSummaryCategories(v)
 */
 gmaps.plotSummaryCategories = async (gobject) => {
-    info2.style.display='none'
-    
     var bar = document.getElementById('summary_plot_cats');
     
     var x = []
@@ -182,7 +177,6 @@ gmaps.plotSummaryCategories = async (gobject) => {
         bar.on('plotly_click', function(data){
             gmaps.plotSummaryTypes(gobject, data.points[0].label)
         });
-        info2.style.display='block'
     }
     else{
         alert('No data to plot!')
@@ -201,7 +195,6 @@ gmaps.plotSummaryCategories = async (gobject) => {
 * var data = await gmaps.plotSummaryTypes(v, 'Education')
 */
 gmaps.plotSummaryTypes = async (gobject, category) => {
-    info3.style.display='none'
     var bar = document.getElementById('summary_plot_types');
     
     var x = []
@@ -246,7 +239,6 @@ gmaps.plotSummaryTypes = async (gobject, category) => {
                 console.log(places)
                 //searchShowPlacesTable(data.points[0].label)
             });
-            info3.style.display='block'
         }
         else{
             alert('No data to plot')
@@ -351,3 +343,7 @@ function createMarker(place) {
 */
 initMap = function() {}
 window.initMap = initMap;
+
+
+export { Gmaps }
+

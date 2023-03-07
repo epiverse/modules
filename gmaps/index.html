@@ -76,10 +76,13 @@
                                             <input class="btn btn-primary" type="button" id="bfilter" onclick="filterData()" value="Filtrar" />
                                     </div>
                                     
+                                    <h4 id="info1" style="display: none" > Map of the chosen location: </h4>
                                     <div id="map" style="width:500px;height:500px;" ></div>
                                     
+                                    <h4 id="info2" style="display: none"> Places by Categories (click in the bar to see the distribution of places by types): </h4>
                                     <div class="col-12"  id="summary_plot_cats"> </div>
                                     
+                                    <h4 id="info3" style="display: none" > Places by Types <span id='catn' > </span>: </h4>
                                     <div class="col-12"  id="summary_plot_types"> </div>
                                     
                                 </div>
@@ -106,20 +109,10 @@
         
                 <script>
                     gendoc.buildDocumentation( location.href.split('#')[0]+'gmaps.js', 'documentation-content', 'https://github.com/epiverse/modules/blob/main/gmaps/gmaps.js')
-                    
-                    function filterData(){
-                        var lat = latitude.value
-                        var lon = longitude.value
-                        var rad = radius.value
-                        Gmaps(lat, lon, rad).then( (val) => {
-                            console.log(val)
-                            setTimeout( function () { 
-                                gmaps.plotSummaryCategories(val); 
-                            }, 5000);
-                         })
-                    }
-                    
                 </script>
+            
+                <script src="index.js"></script>
+                
             </div>
         </div>
 
