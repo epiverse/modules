@@ -2,7 +2,7 @@
     <head>
         <title>Census Library</title>
         
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         
         <link rel="icon" href="favicon.ico" type="image/x-icon"/>
         
@@ -112,6 +112,71 @@
                                         <div id="county_plot" >
                                             <h4 id="info_county" > Map at the County level: </h4>
                                             <div id="map_county" style="width: 800px; height: 600px;" ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12 mt-3" id="bivar_container" style="display: none"  >
+                                        <h2> Choose two metrics (X and Y axis) to perform correlation analysis: </h2>
+                                        
+                                        <div class="form-group col-12" >
+                                                <div style="display: inline-block; margin-bottom: 10px;" >
+                                                    <label class="fields mr-2" style="text-align: right;" >Filter by State:</label>
+                                                    <select class="form-control mr-3 fields" id="select_states_bivar" onChange="fillCountiesBivar()" ></select>
+                                                </div>
+                                                
+                                                <div style="display: inline-block; margin-bottom: 10px;" >
+                                                    <label class="fields mr-2" style="text-align: right;" >Select County:</label>
+                                                    <select class="form-control mr-3 fields" id="select_county_bivar" ></select>
+                                                </div>
+                                                
+                                                <div class="accordion" id="accordionExample">
+                                                
+                                                  <div class="accordion-item">
+                                                    <h2 class="accordion-header" id="headingOne">
+                                                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                        Choose X Axis (Metric 1)
+                                                      </button>
+                                                    </h2>
+                                                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" >
+                                                      <div class="accordion-body">
+                                                            <div class="form-group col-12" >
+                                                                <label class="fields mr-2" style="text-align: right;"  >Filter Metric to plot:</label>
+                                                                <input type="text" id="xaxis_filter" class="form-control metric_filter mr-3 fields" placeholder="Search for a metric" />
+                                                                <select class="form-control" id="options_xaxis" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'xaxis_auxiliary_fields')" > </select> 
+                                                                <div class="mt-2" id='xaxis_auxiliary_fields' > </div>
+                                                                
+                                                            </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  
+                                                  <div class="accordion-item">
+                                                    <h2 class="accordion-header" id="headingTwo">
+                                                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                        Choose Y Axis (Metric 2)
+                                                      </button>
+                                                    </h2>
+                                                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" >
+                                                      <div class="accordion-body">
+                                                            <div class="form-group col-12" >
+                                                                <label class="fields mr-2" style="text-align: right;"  >Filter Metric to plot:</label>
+                                                                <input type="text" id="yaxis_filter" class="form-control metric_filter mr-3 fields" placeholder="Search for a metric" />
+                                                                <select class="form-control" id="options_yaxis" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'yaxis_auxiliary_fields')" > </select> 
+                                                                <div class="mt-2" id='yaxis_auxiliary_fields' > </div>
+                                                                
+                                                            </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  
+                                                </div>
+                                                
+                                                <input class="btn btn-primary mt-3" type="button" id="bivar_filter" onclick="getBivariablePlot()" value="Generate Bivariable plot" />
+                                        </div>
+                                        
+                                        <div id="bivar_plot" class="mt-2" >
+                                            <h4 id="info_bivar" > Bivariate Histogram 2D Coutour Map: </h4>
+                                            <div id="plot_bivar" ></div>
                                         </div>
                                     </div>
                                     

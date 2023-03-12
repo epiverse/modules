@@ -13,6 +13,7 @@ console.log('census.js loaded')
  * @property {Function} getDataState - {@link census.getDataState}
  * @property {Function} getDataCountyByState - {@link census.getDataCountyByState}
  * @property {Function} getDataCountyAllStates - {@link census.getDataCountyAllStates}
+ * @property {Function} getDataSubdivisionByStateAndCounty - {@link census.getDataSubdivisionByStateAndCounty}
  * @property {Function} getCountyByStatePlot - {@link census.getCountyByStatePlot}
  * @property {Function} generatePlotState - {@link census.generatePlotState}
  * @property {Function} generatePlotCounty - {@link census.generatePlotCounty}
@@ -26,6 +27,7 @@ console.log('census.js loaded')
  * @property {Function} loadScript - {@link census.loadScript}
  */
  
+ 
  /**
  *
  *
@@ -36,11 +38,13 @@ console.log('census.js loaded')
  * @attribute {array} chosen_state_metric State metric variable chosen by the user.
  * @attribute {string} chosen_county County id chosen by the user.
  * @attribute {array} chosen_county_metric County metric variable chosen by the user.
+ * @attribute {array} chosen_subdivision_metric Subdivision metric variable chosen by the user.
  * @attribute {array} states States list of the USA.
  * @attribute {Object} state_dict States dictionary to map state name to abbreviated code.
  * @attribute {array} census_variables Available variables in Census API.
  * @attribute {Object} dict_counties_geo County dictionary with geo points grouped by state.
  */
+
 
 /** 
 * Initializes the Census Library object
@@ -63,8 +67,10 @@ async function Census (){
     object.state_dict = await temp.json()
     
     var server = (location.href.indexOf('/census')==-1 ) ? location.href.split('#')[0]+'census/' : location.href.split('#')[0]
-    var temp = await fetch(server+'geo_counties_usa.tsv')
-    temp = await temp.text()
+    var temp = await fetch(server+'counties_geo_info.json')
+    object.dict_counties_geo = await temp.json()
+    
+    /*temp = await temp.text()
     temp = temp.split('\n')
     var dict_counties_geo = {}
     temp.slice(1).forEach(el => {
@@ -81,6 +87,7 @@ async function Census (){
         dict_counties_geo[state].push( { 'county': county, 'lat': lat, 'lon': lon } )
     })
     object.dict_counties_geo = dict_counties_geo
+    */
     
     return object
 }
@@ -250,7 +257,7 @@ census.getDataRegion = async function (cobject){
 census.getDataState = async function (cobject){
     var query = cobject.chosen_state_metric
     var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    content=await res.json()
+    var content=await res.json()
     content=content.slice(1)
     var treated = []
     content.forEach( el => {
@@ -289,7 +296,7 @@ census.getDataCountyByState = async function (cobject){
     var state = cobject.chosen_state
     var state_id = cobject.states.filter(el => el.name==state )[0].id
     var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${state_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    content=await res.json()
+    var content=await res.json()
     content=content.slice(1)
     var treated = []
     content.forEach( el => {
@@ -365,6 +372,154 @@ census.getDataCountyAllStates = async function (cobject){
     })
     
     return treated
+}
+
+/** 
+* Get and treat data from api census level Subdivision by State and county
+* 
+* @param {Object} cobject Census library object
+*
+* 
+* @returns {array} Data table with data retrieved from Census API
+* 
+* @example
+* let v = await Census()
+* v.chosen_state = 'California'
+* v.chosen_county = 'Sacramento County'
+* v.chosen_subdivision_metric=['B01001_026E']
+* let dat = await census.getDataSubdivisionByStateAndCounty(v)
+*/
+census.getDataSubdivisionByStateAndCounty = async function (cobject){
+    var query = cobject.chosen_subdivision_metric
+    var state = cobject.chosen_state
+    var county = cobject.chosen_county
+    var state_id = cobject.states.filter(el => el.name==state )[0].id
+    var county_id = cobject.dict_counties_geo[state].filter(el => el.county==county )[0].code
+    console.log(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var content=await res.json()
+    content=content.slice(1)
+    var treated = []
+    content.forEach( el => {
+        var final_index = el.length-1
+        var obj = { 'id': el[final_index], 'name': el[0], 'result': parseInt(el[1]) } 
+        if( ! isNaN(obj.result) ){
+            var temp = el.slice(1, el.length-3)
+            var i=0
+            for (var c of query){
+                obj[c]=temp[i]
+                i+=1
+            }
+            treated.push( obj )
+        }
+    })
+    
+    return treated
+}
+
+/** 
+* Generate bivariable plot
+* 
+* @param {Object} cobject Census library object
+* @param {array} table Data table retrieved from the census api
+* @param {array} query Census variable ids
+* @param {string} title_x Title for X axis
+* @param {string} title_y Title for Y axis
+* @param {string} container Container to draw plot right after data retrieval [Optional]
+*
+*
+* 
+* @example
+* let v = await Census()
+* v.chosen_state = 'California'
+* v.chosen_county_metric=['B01001_026E', 'B18108_011E']
+* let dat = await census.getDataCountyByState(v)
+* let dat = await census.generateBivariablePlot(v, dat, ['B01001_026E', 'B18108_011E'], 'SEX BY AGE (Female|All)', 'AGE BY NUMBER OF DISABILITIES (18 to 34 years|With one type of disability)', 'plot_bivar')
+*/
+census.generateBivariablePlot = function (cobj, table, query, title_x, title_y, container){
+    var x = []
+    var y = []
+    table.forEach(el => {
+        x.push( el[query[0]] )
+        y.push( el[query[1]] )
+    })
+
+    var trace1 = {
+        x: x,
+        y: y,
+        mode: 'markers',
+        name: 'points',
+        marker: {
+            color: 'rgb(102,0,0)',
+            size: 2,
+            opacity: 0.4
+        },
+        type: 'scatter'
+    };
+
+    var trace2 = {
+        x: x,
+        y: y,
+        name: 'density',
+        ncontours: 20,
+        colorscale: 'Hot',
+        reversescale: true,
+        showscale: false,
+        type: 'histogram2dcontour'
+    };
+
+    var trace3 = {
+        x: x,
+        name: 'x density',
+        marker: {color: 'rgb(102,0,0)'},
+        yaxis: 'y2',
+        type: 'histogram'
+    };
+
+    var trace4 = {
+        y: y,
+        name: 'y density',
+        marker: {color: 'rgb(102,0,0)'},
+        xaxis: 'x2',
+        type: 'histogram'
+    };
+
+    var data = [trace1, trace2, trace3, trace4];
+
+    var layout = {
+        showlegend: false,
+        autosize: false,
+        width: 900,
+        height: 650,
+        margin: {l: 80, b: 80, t: 90},
+        hovermode: 'closest',
+        bargap: 0,
+        xaxis: {
+            title: title_x,
+            domain: [0, 0.85],
+            showgrid: false,
+            zeroline: false
+        },
+        yaxis: {
+            title: title_y,
+            domain: [0, 0.85],
+            showgrid: false,
+            zeroline: false
+        },
+        xaxis2: {
+            domain: [0.85, 1],
+            showgrid: false,
+            zeroline: false
+        },
+        yaxis2: {
+            domain: [0.85, 1],
+            showgrid: false,
+            zeroline: false
+        },
+        title: 'Bivariate Histogram 2D Contour Map'
+    };
+
+    Plotly.newPlot(container, data,layout);
 }
 
 /** 
