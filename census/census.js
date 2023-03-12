@@ -17,6 +17,7 @@ console.log('census.js loaded')
  * @property {Function} getCountyByStatePlot - {@link census.getCountyByStatePlot}
  * @property {Function} generatePlotState - {@link census.generatePlotState}
  * @property {Function} generatePlotCounty - {@link census.generatePlotCounty}
+ * @property {Function} generateBivariablePlot - {@link census.generateBivariablePlot}
  * @property {Function} getStates - {@link census.getStates}
  * @property {Function} getVariablesProcessed - {@link census.getVariablesProcessed}
  * @property {Function} getVariables - {@link census.getVariables}
