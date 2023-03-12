@@ -1,0 +1,185 @@
+<html>
+    <head>
+        <title>Census Library</title>
+        
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        
+        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+        
+        <script src="../gendoc.js"></script>
+        <link rel="stylesheet" href="../gendoc.css">
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        
+        <style>
+            .fields{
+                width: 200px !important; 
+                display: inline-block;
+            }
+            .fields-100{
+                width: 100px !important; 
+                display: inline-block;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="container-fluid">
+            <div class="container">
+            
+                <section id="header">
+                    <h1>
+                        EpiVerse - Census Module 
+                        <sup style="font-size:medium;color:green"><a href="https://dceg.cancer.gov/" target="_blank" style="color:green">DCEG</a></sup> <br>
+                        <span style="font-size:small;color:blue">
+                            [<a href="https://github.com/epiverse/modules/census" target="_blank">code</a>] 
+                            [<a href="https://github.com/epiverse/modules/issues" target="_blank">issues</a>] 
+                            [<a href="" target="_blank" style="font-size:large;font-weight:bold;color:red">YouTube</a>]
+                        </span>
+                    </h1> 
+                    
+                    <hr>
+                </section>
+            
+                <ul class="nav nav-tabs" id="options" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">About Census Library</button>
+                  </li>
+                  
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documentation-tab" data-bs-toggle="tab" data-bs-target="#documentation" type="button" role="tab" aria-controls="documentation" aria-selected="false">Documentation</button>
+                  </li>
+                </ul>
+                
+                <div class="tab-content" id="optionsContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                
+                        <section id="introduction" class="mt-3">
+                            <p>
+                                This is the Census maps module that retrieves demographic statistics compiled from the <a href="https://www.census.gov/data/developers/data-sets/ACS-supplemental-data.html" > USA Census </a>
+                            </p>
+                        </section>
+                        
+                        <section id="usage">
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h3>Data</h3>
+                                    <p> Exploration places according the the area in a given latitude and longitude covering the radius in Meters. </p>  
+                                    
+                                    <div class="col-12" id="main" >
+                                        <div class="form-group col-12" >
+                                                <label class="fields mr-2" style="text-align: right;" >Geographic Level:</label>
+                                                <select id="level_in" class="form-control mr-3 fields" onChange="initCensus()" >
+                                                    <option value="state" selected> State </option>
+                                                    <option value="county" > County </option>
+                                                </select>
+                                                
+                                                <div class="form-group col-12" >
+                                                    <label class="fields mr-2" style="text-align: right;" placeholder="Search for a metric" >Filter Metric to plot:</label>
+                                                    <input type="text" id="main_filter" class="form-control metric_filter mr-3 fields" style="width: 300px" placeholder="type to search" />
+                                                    <select class="form-control" id="options_main" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'main_auxiliary_fields')" > </select> 
+                                                    <div class="mt-2" id='main_auxiliary_fields' > </div>
+                                                    
+                                                    <input class="btn btn-primary mt-2" type="button" id="main_filter" onclick="getMainPlot()" value="See map" />
+                                                </div>
+                                        </div>
+                                        
+                                        
+                                        
+                                        <div id="main_plot" class="mt-3" style="display: none" >
+                                            <h4 id="info_main" > Map of the chosen level (<strong id='level'> </strong>): </h4>
+                                            <div id="map_main" ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12" id="county_container" style="display: none"  >
+                                        <div class="form-group col-10" >
+                                        
+                                                <label class="fields mr-2" style="text-align: right;" >Filter Metric to plot:</label>
+                                                <input type="number" id="metric_county" class="form-control mr-3 fields" />
+                                                <select class="form-control" id="options_county" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'county_auxiliary_fields')" > </select> 
+                                                <div class="form-group col-10 mt-2" id='county_auxiliary_fields' > </div>
+                                                
+                                                <input class="btn btn-primary" type="button" id="county_filter" onclick="getCountyPlot()" value="Enviar" />
+                                        </div>
+                                        
+                                        <div class="form-group col-10 mt-2" id='main_auxiliary_fields' > </div>
+                                        
+                                        <div id="county_plot"  style="display: none" >
+                                            <h4 id="info_county" > Map at the County level: </h4>
+                                            <div id="map_caounty" ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12" id="subdivision_container" style="display: none"  >
+                                        <h4 id="info3" style="display: none" > Subdivisions in the selected county (<strong id='county_chosen'> </strong>): </h4>
+                                        <div class="col-12 mt-3"  id="filtered" style="display: none;"> </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                              
+                        </section>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="documentation" role="tabpanel" aria-labelledby="documentation-tab">
+                        <section id="documentation-content" class="mt-3">
+                            
+                        </section>
+                    </div>
+                </div>
+                
+                
+                <script src="census.js"></script>
+                <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+                
+                <script>
+                    gendoc.buildDocumentation( location.href.split('#')[0]+'census.js', 'documentation-content', 'https://github.com/epiverse/modules/blob/main/census/census.js')
+                    
+                    var cobj = null
+                    function initCensus(){
+                        var lev = level_in.value
+                        Census(lev).then( (val) => {
+                            cobj = val
+                            console.log(cobj)
+                            census.makeFillVariableSelect(cobj, 'options_main')
+                            setTimeout( function () { 
+                                getMainPlot()
+                            }, 2000);
+                        } ) 
+                    }
+                    initCensus()
+                    
+                    getMainPlot = () => {
+                        var metric = options_main.value
+                        var fil = []
+                        document.querySelectorAll('.filter_main').forEach( el => { fil.push(el.value) } )
+                        fil=fil.join('|')
+                        //console.log(cobj, fil, metric)
+                        census.getMainDemographyData(cobj, fil, metric, 'map_main').then( (val) => {})
+                    }
+                    
+                    document.querySelector('.metric_filter').addEventListener('input', ({ target }) => {
+                          const value = target.value
+                          const ide = 'options_'+target.id.split('_')[0]
+                          if(value.length) {
+                             census.makeFilterVariableAutocomplete(cobj, value, ide)
+                          }
+                    })
+                    
+                    google.charts.load('current', {
+                        'packages': ['map'],
+                        'mapsApiKey': 'AIzaSyAHcL7uevM0muUusWOkucO1zY3O5CpS5VE'
+                    });
+                </script>
+            
+                <script src="index.js"></script>
+                
+            </div>
+        </div>
+
+        
+    </body>
+</html>
+

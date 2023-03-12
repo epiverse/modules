@@ -1,0 +1,568 @@
+console.log('census.js loaded')
+
+/* Initializes object with default example parameters */
+
+/**
+ * Main global portable module.
+ * @namespace 
+ * @property {Function} Census - {@link Census}
+ *
+ * @namespace census
+ * @property {Function} getMainDemographyData - {@link census.getMainDemographyData}
+ * @property {Function} generatePlotState - {@link census.generatePlotState}
+ * @property {Function} getStates - {@link census.getStates}
+ * @property {Function} getVariablesProcessed - {@link census.getVariablesProcessed}
+ * @property {Function} getVariables - {@link census.getVariables}
+ * @property {Function} getVariableDetails - {@link census.getVariableDetails}
+ * @property {Function} makeFillVariableSelect - {@link census.makeFillVariableSelect}
+ * @property {Function} makeFilterVariableAutocomplete - {@link census.makeFilterVariableAutocomplete}
+ * @property {Function} makeFiltersVariableDetail - {@link census.makeFiltersVariableDetail}
+ * @property {Function} loadScript - {@link census.loadScript}
+ */
+ 
+ /**
+ *
+ *
+ * @object Census
+ * @attribute {string} level Level of geographical granularity (region, state, county).
+ * @attribute {Object} chosen_state State id chosen by the user.
+ * @attribute {string} chosen_state_metric State metric variable chosen by the user.
+ * @attribute {Object} chosen_county County id chosen by the user.
+ * @attribute {string} chosen_county_metric County metric variable chosen by the user.
+ * @attribute {array} states States list of the USA.
+ * @attribute {Object} state_dict States dictionary to map state name to abbreviated code.
+ * @attribute {array} census_variables Available variables in Census API.
+ * @attribute {Object} dict_counties_geo County dictionary with geo points grouped by state.
+ */
+
+/** 
+* Initializes the Census Library object
+* 
+* @param {string} [level=state] Level of geographical granularity (region, state, county).
+*
+*
+* @returns {Object} Census library object.
+* 
+* @example
+* let v = await Census('state')
+*/
+async function Census (level){
+    var object = { level: level, chosen_state: '', chosen_state_metric: '', chosen_county: '', chosen_county_metric: '' }
+    
+    await census.getVariablesProcessed(object)
+    await census.getStates(object)
+    
+    var server = (location.href.indexOf('/census')==-1 ) ? location.href.split('#')[0]+'census/' : location.href.split('#')[0]
+    var temp = await fetch(server+'convert_state_in_codes.json')
+    census.state_dict = await temp.json()
+    
+    var server = (location.href.indexOf('/census')==-1 ) ? location.href.split('#')[0]+'census/' : location.href.split('#')[0]
+    var temp = await fetch(server+'geo_counties_usa.tsv')
+    temp = await temp.text()
+    temp = temp.split('\n')
+    var dict_counties_geo = {}
+    temp.slice(1).forEach(el => {
+        var cols = el.split('\t')
+        
+        var state = cols[2]
+        var county = cols[1]
+        var lat = cols[0].split(', ')[0]
+        var lon = cols[0].split(', ')[1]
+        
+        if( ! Object.keys(dict_counties_geo).includes(state) ){
+            dict_counties_geo[state]=[]
+        }
+        dict_counties_geo[state].push( { 'county': county, 'lat': lat, 'lon': lon } )
+    })
+    object.dict_counties_geo = dict_counties_geo
+    
+    return object
+}
+
+let census = {}
+
+/** 
+* Get demography general data
+* 
+* @param {Object} cobject Census library object
+* @param {string} variable_query Query filter combination
+* @param {string} metric High level metric to filter
+* @param {string} container Container to draw plot right after data retrieval [Optional]
+*
+*
+* @returns {array} Data table with data retrieved from Census API
+* 
+* @example
+* let v = await Census('state')
+* let dat = await census.getMainDemographyData(v)
+*/
+census.getMainDemographyData = async function(cobject, variable_query, metric, container){
+    var treated = []
+        
+    var vrbs=cobject.census_variables.filter( el => el.global_var == metric )
+    vrbs=vrbs[0]
+    if( Object.keys(vrbs.variable_filters.retrieval_dict).includes(variable_query) ) {
+        var query = vrbs.variable_filters.retrieval_dict[variable_query]
+        
+        // Reference https://www.census.gov/data/developers/data-sets/ACS-supplemental-data.html
+        // **** get regions https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E,B02001_001E,B01003_001E&for=region:*  
+        // **** get states https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=state:*
+        
+        // get county https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=county:*
+        
+        // get counties by states https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E,B02001_001E,B01003_001E&for=county:*&in=state:06
+        
+        // get subdivisions in a state https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=county%20subdivision:*&in=state:17
+        // **** get subdivisions by county and state https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=county%20subdivision:*&in=state:17&in=county:197
+
+        // inside a state microdata
+        //var res = await fetch(`https://api.census.gov/data/2021/acs/acs1/pums?get=SEX,PWGTP,SCHL,DIS,ESR,WAGP,RAC1P,MAR&for=public%20use%20microdata%20area:*&in=state:01`)
+        
+        //state_container.style.display='none'
+        county_container.style.display='none'
+        subdivision_container.style.display='none'
+        
+        var res = null
+        var content=[]
+        if(cobject.level=='region'){
+            level.value=cobject.level
+            res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query}&for=region:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+            content = await res.json()
+            content=content.slice(1)
+            treated = []
+            content.forEach( el => {
+                treated.push( { 'id': el[2], 'name': el[0], 'result': el[1] } )
+            })
+        }
+        if(cobject.level=='state'){
+            level.innerHTML=cobject.level
+            cobject.chosen_state_metric=query
+        
+            res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+            content=await res.json()
+            content=content.slice(1)
+            treated = []
+            content.forEach( el => {
+                treated.push( { 'id': census.state_dict[ el[0] ], 'number_code': el[2], 'name': el[0], 'result': parseInt(el[1]) } )
+            })
+            
+            if(container!=null && container!=''){
+                census.generatePlotState(cobject, treated, 'map_main')
+            }
+        }
+        if(cobject.level=='county'){
+            level.innerHTML = cobject.level
+            
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+            var i=0
+            var info=[]
+            var rate=100
+            var table = cobject.states
+            while (i<table.length) {
+                  var end = ((i+rate)<=table.length) ? i+rate : table.length
+                  var temp = table.slice(i, end)
+                  info = info.concat( await Promise.all( temp.map( async tab => {
+                      var url = tab.link_details
+                      var enrich = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query}&for=county:*&in=state:${tab.id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+                      enrich = await enrich.json()
+                      enrich = enrich.slice(1)
+                      await sleep(300)
+                      
+                      return enrich
+                  } )) )
+                  
+                  i+=rate
+                  if(i>=table.length){
+                      break
+                  }
+            }
+            
+            treated = []
+            info.forEach( ele => {
+                ele.forEach( el => {
+                    treated.push( { 'id': el[3], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': census.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } )
+                } )
+            })
+        }
+        
+        cobject.data_demography = treated
+        
+    }
+    else{
+        alert('This combination of filters is not available for this metric')
+    }
+    
+    return treated
+}
+
+/** 
+* Generate plot in the state scope of the cloropleth map
+* 
+* @param {Object} cobject Census library object
+* @param {array} table Data table retrieved from the census api
+* @param {string} container COntainer identifier to draw the plot
+*
+*
+* @returns {Object} General demography data.
+* 
+* @example
+* let v = await Census('county')
+* let dat = await census.getDemographyData(v)
+* await census.generatePlotState(dat, 'map_main')
+*/
+census.generatePlotState = async function (cobject, table, container){
+    var map = document.getElementById(container)
+
+    var locations = table.map( el => { return el['id'] } )
+    var captions = table.map( el => { return el['name'] } )
+    var y = table.map( el => { return el['result'] } )
+    
+    var data = [{
+          type: 'choropleth',
+          locationmode: 'USA-states',
+          locations: locations,
+          z: y,
+          text: captions,
+          colorbar: {
+              thickness: 0.2
+          },
+          marker: {
+              line:{
+                  color: 'rgb(255,255,255)',
+                  width: 2
+              }
+          }
+      }];
+
+
+      var layout = {
+          geo:{
+              scope: 'usa',
+              showlakes: true,
+              lakecolor: 'rgb(255,255,255)'
+          }
+      };
+      
+      var ide = container.split('_')[1]
+      document.getElementById(ide+'_plot').style.display=''
+      
+      Plotly.newPlot(container, data, layout, {showLink: false})
+      .then( gd => {
+         gd.on('plotly_click', function(data){
+            var pts = '';
+            console.log(data.points[0])
+            cobject.chosen_state = data.points[0].text
+            
+            /*for(var i=0; i < data.points.length; i++){
+                pts = 'x = '+data.points[i].x +'\ny = '+
+                    data.points[i].y.toPrecision(4) + '\n\n';
+            }
+            alert('Closest point clicked:\n\n'+pts);
+            */
+        });
+     })
+}
+
+/** 
+* Get USA states identifiers
+* 
+* @param {Object} cobject Census library object
+*
+*
+* @returns {array} Data table with data cotaining id, state abbreviation and name
+* 
+* @example
+* let v = await Census('state')
+* let dat = await census.getStates(v)
+*/
+census.getStates = async function (cobject){
+    var a=await fetch('https://api.census.gov/data/2021/acs/acs1?get=NAME&for=state:*')
+    var text =await a.json()
+    var treated=[]
+    text.slice(1).forEach( el => {
+        treated.push( { 'id': el[1], 'name': el[0] } )
+    })
+    cobject.states = treated
+    
+    return treated
+}
+
+/** 
+* Get Census Variables and details stored in local json
+* 
+* @param {Object} cobject Census library object
+*
+*
+* @returns {array} Data table with data containing high level variable metadata: id global, description, link for variable filter options and variable details object
+* 
+* @example
+* let v = await Census('state')
+* let dat = await census.getVariablesProcessed(v)
+*/
+census.getVariablesProcessed = async function (cobject){
+    var server = (location.href.indexOf('/census')==-1 ) ? location.href.split('#')[0]+'census/' : location.href.split('#')[0]
+    console.log(server)
+    var table = await fetch(server+'treated_census_variables.json')
+    table = await table.json()
+    cobject.census_variables = table
+    
+    return table
+}
+
+/** 
+* Get Census Variables and details updated directly from the Census API
+* 
+* @param {Object} cobject Census library object
+*
+*
+* @returns {array} Data table with data containing high level variable metadata: id global, description, link for variable filter options and variable details object
+* 
+* @example
+* let v = await Census('state')
+* let dat = await census.getVariables(v)
+*/
+census.getVariables = async function (cobject){
+    var a=await fetch('https://api.census.gov/data/2021/acs/acs1/groups.html')
+    var text =await a.text()
+    text=text.split('\n')
+    var table=[]
+    for (var l of text){
+        if(l.indexOf('</td><td>')!=-1){
+            var aux = l.split('</td><td>')
+            var link = aux[2].split('href="')[1].split('"')[0]
+            var id_ = aux[0].replace('<td>','')
+            //var details = census.getVariableDetails(link)
+            table.push( { 'global_var': id_, 'description': aux[1], 'link_details': link, 'variable_filters': null } )
+        }
+    }
+    
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    var i=0
+    var info=[]
+    var rate=100
+    while (i<table.length) {
+          var end = ((i+rate)<=table.length) ? i+rate : table.length
+          var temp = table.slice(i, end)
+          info = info.concat( await Promise.all( temp.map( async tab => {
+              var url = tab.link_details
+              var enrich = await census.getVariableDetails(url)
+              tab.variable_filters = enrich
+              await sleep(300)
+              
+              return tab
+          } )) )
+          
+          i+=rate
+          if(i>=table.length){
+              break
+          }
+    }
+    
+    info = info.filter( el => el.variable_filters!=null )
+    
+    cobject.census_variables = info
+    
+    return info
+}
+
+/** 
+* Get Census Variables details and filtering options updated directly from the Census API
+* 
+* @param {string} link Link to the variable details and filters
+*
+*
+* @returns {array} Data table with data containing filter options for the chosen high level variable metadata: details data of each option available in the variable context, dictionary of legible options to the corresponding id to query in census, columns with options names, array of the sam elength as columns contianing the unique values to fill each filter select separately
+* 
+* @example
+* let v = await Census('state')
+* let dat = await census.getVariableDetails('https://api.census.gov/data/2021/acs/acs1/groups/B19001.html')
+*/
+census.getVariableDetails = async function (link){
+    link = link.replace('http:','https:')
+    var a=await fetch(link)
+    var text =await a.text()
+    text=text.split('\n')
+    
+    var table=[]
+    var retrieval_dict = {}
+    var unique_col_values=[]
+    var cols=[]
+    var j=0
+    for (var l of text){
+        if(l.indexOf('</td><td>')!=-1 && l.indexOf('Estimate!!Total:')!=-1 && l.indexOf('Annotation of ')==-1 ){
+            var aux = l.split('</td><td>')
+            var id_=aux[0].replace('<td>','').split('>')[1].split('<')[0]
+            
+            cols = aux[2].split(' BY ')
+            if(j==0){
+                cols.forEach( el => {
+                    unique_col_values.push([])
+                } )
+            }
+            
+            var values = aux[1].split(':')
+            if( values.length>=2 ){
+                var temp_vals=[]
+                var filters={}
+                var j = 1
+                for (var c of cols){
+                    var v = 'All'
+                    if( values[j]!=undefined && values[j]!='' ){
+                        v=values[j].replace('!!','')
+                    }
+                    filters[c]=v
+                    temp_vals.push(v)
+                    j+=1
+                }
+                
+                var id_dict = temp_vals.join('|')
+                retrieval_dict[id_dict] = id_
+                
+                var cnt=0
+                for(var c of cols){
+                    if (! unique_col_values[cnt].includes(filters[c]) ) { 
+                        unique_col_values[cnt].push( filters[c] )
+                    }
+                    cnt+=1
+                }
+                table.push( { 'filter_id': id_, 'filters_dict': filters } )
+            }
+            j+=1
+        }
+    }
+    
+    var result = null
+    if(table.length>0){
+        result    = { 'details_data': table, 'retrieval_dict': retrieval_dict, 'columns': cols, 'viz_unique_col_values': unique_col_values }
+    }
+    return result
+}
+
+/** 
+* Fill select options with all available variables
+* 
+* @param {Object} cobject Census library object
+* @param {string} container Container to the select tag to be filled
+*
+*
+* @example
+* let v = await Census('state')
+* let dat = await census.makeFillVariableSelect(v, 'options_main')
+*/
+census.makeFillVariableSelect = async function (cobject, container){
+    var ide = container.split('_')[1]
+    //var aux = cobject.census_variables.filter( el => el.globalvar==id_ )
+    var aux = cobject.census_variables
+    var htmls = ""
+    var i=0
+    var first=''
+    aux.forEach( el => {
+        sel=''
+        if(i==0){
+            first=el.global_var
+            sel='selected'
+        }
+        htmls+=`<option value="${el.global_var}" ${sel} > ${el.description} </option>`
+        i+=1
+    })
+    document.getElementById(container).innerHTML=htmls
+    census.makeFiltersVariableDetail(cobject, first, ide+'_auxiliary_fields')
+}
+
+/** 
+* Filter options of available variables according to keyword typed in search field
+* 
+* @param {Object} cobject Census library object
+* @param {string} cobject Keyword to search among the available metrics
+* @param {string} container Container to the select tag to be filled
+*
+*
+* @example
+* let v = await Census('state')
+* let dat = await census.makeFilterVariableAutocomplete(v, 'income', 'options_main')
+*/
+census.makeFilterVariableAutocomplete = async function (cobject, value, container){
+    var ide = container.split('_')[1]
+    var aux = cobject.census_variables.filter( el => el.description.toLowerCase().includes(value.toLowerCase()) )
+    var htmls = ""
+    var first
+    var i=0
+    aux.forEach( el => {
+        if(i==0){
+            first=el.global_var
+        }
+        htmls+=`<option value="${el.global_var}"> ${el.description} </option>`
+        i+=1
+    })
+    
+    if(htmls!=""){
+        document.getElementById(container).innerHTML=htmls
+        census.makeFiltersVariableDetail(cobject, first, ide+'_auxiliary_fields')
+    }
+}
+
+/** 
+* Generate and fill select tags with each filter option for the chosen metric
+* 
+* @param {Object} cobject Census library object
+* @param {string} container Container to the select tag to be filled
+*
+*
+* @example
+* let v = await Census('state')
+* let dat = await census.makeFiltersVariableDetail(v, 'main_auxiliary_fields')
+*/
+census.makeFiltersVariableDetail = async function (cobject, id_metric, container){
+    var ide = container.split('_')[0]
+    var aux = cobject.census_variables.filter( el => el.global_var==id_metric )
+    var tab = aux[0].variable_filters
+    var htmls=""
+    var i=0
+    for (var c of tab.columns){
+        var content = tab.viz_unique_col_values[i]
+        
+        var options = ""
+        content.forEach(el => {
+            options+=`<option value="${el}"> ${el} </option>`
+        })
+        
+        htmls+=`
+            <div style="display: inline-block;" >
+                <label class="fields mr-2" style="text-align: right;" > ${c} filter options:</label>
+                <select id="filter_${ide}_${i}" class="filter_${ide} form-control mr-3 fields" > ${options} </select>
+            </div>
+        `
+        i+=1
+    }
+    document.getElementById(container).innerHTML=htmls
+}
+
+
+/** 
+* Load a certain dependency library from link
+* 
+*
+* @param {string} url Library URL.
+* 
+* @example
+* census.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+*
+*/
+census.loadScript= async function(url){
+	console.log(`${url} loaded`)
+    async function asyncScript(url){
+        let load = new Promise((resolve,regect)=>{
+            let s = document.createElement('script')
+            s.src=url
+            s.onload=resolve
+            document.head.appendChild(s)
+        })
+        await load
+    }
+    // satisfy dependencies
+    await asyncScript(url)
+}
+
+if(typeof(Plotly)=="undefined"){
+	census.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+}
