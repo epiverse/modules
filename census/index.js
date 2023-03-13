@@ -1,7 +1,11 @@
 function initCensus(){
+                        census.makeFillYearSelect('select_year')
+                        var year = select_year.value
+                        
                         //var lev = level_in.value
-                        Census().then( (val) => {
+                        Census(year).then( (val) => {
                             cobj = val
+                            
                             census.makeFillVariableSelect(cobj, 'options_main')
                             census.makeFillVariableSelect(cobj, 'options_county')
                             census.makeFillVariableSelect(cobj, 'options_xaxis')
@@ -17,20 +21,30 @@ function initCensus(){
                                     i+=1
                                 })
                                 document.getElementById('select_states').innerHTML=select_st
-                                
-                                getMainPlot()
-                                
-                                getCountyPlot()
-                                
                                 document.getElementById('select_states_bivar').innerHTML=select_st
-                                fillCountiesBivar()
-                                options_yaxis.value='B18108'
-                                census.makeFiltersVariableDetail(cobj, 'B18108', 'yaxis_auxiliary_fields')
                                 
-                                getBivariablePlot()
-                                
+                                initializePlots()
                             }, 2000);
                         } ) 
+                    }
+                    
+                    initializePlots = () => {
+                        getMainPlot()
+                        
+                        getCountyPlot()
+                        
+                        fillCountiesBivar()
+                        options_yaxis.value='B18108'
+                        census.makeFiltersVariableDetail(cobj, 'B18108', 'yaxis_auxiliary_fields')
+                        
+                        getBivariablePlot()
+                    }
+                    
+                    changeYear = () => {
+                        var year = select_year.value
+                        cobj.year=year
+                        
+                        initializePlots()
                     }
                     
                     fillCountiesBivar = () => {
@@ -45,6 +59,8 @@ function initCensus(){
                     }
                     
                     callback_handle_state_chosen = async (data) => {
+                        infol_county.style.display=''
+                        
                         document.getElementById('county_container').style.display=''
                         state_in.innerHTML = cobj.chosen_state
                         select_states.value = cobj.chosen_state
@@ -63,9 +79,12 @@ function initCensus(){
                         } )
                         fil=fil.join('|')
                         await census.getCountyByStatePlot(cobj, fil, metric, 'map_county')
+                        infol_county.style.display='none'
                     }
                     
                     getBivariablePlot =  () => {
+                        infol_bivar.style.display=''
+                        
                         document.getElementById('bivar_container').style.display=''
                         
                         var query=[]
@@ -113,19 +132,23 @@ function initCensus(){
                                     var container = 'plot_bivar'
                                     console.log(query, title_x, title_y, container)
                                     census.generateBivariablePlot(cobj, table, query, title_x, title_y, container)
+                                    infol_bivar.style.display='none'
                                     
                                 }
                                 else{
                                     alert('There is no data to plot')
+                                    infol_bivar.style.display='none'
                                 }
                             })
                         }
                         else{
                             alert('Choose distinct variables for X and Y axis')
+                            infol_bivar.style.display='none'
                         }
                     }
                     
                     getCountyPlot = () => {
+                        infol_county.style.display=''
                         document.getElementById('county_container').style.display=''
                         cobj.chosen_state = document.getElementById('select_states').value
                         state_in.innerHTML = cobj.chosen_state
@@ -135,15 +158,18 @@ function initCensus(){
                         document.querySelectorAll('.filter_county').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
                         census.getCountyByStatePlot(cobj, fil, metric, 'map_county')
+                        infol_county.style.display='none'
                     }
                     
                     getMainPlot = () => {
+                        infol_state.style.display=''
                         var metric = options_main.value
                         var fil = []
                         document.querySelectorAll('.filter_main').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
                         console.log( fil, metric)
                         census.getMainDemographyData(cobj, fil, metric, 'map_main', callback_handle_state_chosen ).then( (val) => {})
+                        infol_state.style.display='none'
                     }
                     
                     var nodes = document.querySelectorAll('.metric_filter')

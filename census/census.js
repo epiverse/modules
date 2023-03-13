@@ -33,7 +33,7 @@ console.log('census.js loaded')
  *
  *
  * @object Census
- * @attribute {string} level Level of geographical granularity (region, state, county).
+ * @attribute {string} year Year for analysis.
  * @attribute {array} chosen_region_metric Region metric variable chosen by the user.
  * @attribute {string} chosen_state State id chosen by the user.
  * @attribute {array} chosen_state_metric State metric variable chosen by the user.
@@ -51,14 +51,15 @@ console.log('census.js loaded')
 * Initializes the Census Library object
 * 
 *
+* @param {string} [year=2021] Year for analysis
 *
 * @returns {Object} Census library object.
 * 
 * @example
 * let v = await Census()
 */
-async function Census (){
-    var object = { chosen_region_metric: [], chosen_state: '', chosen_state_metric: [], chosen_county: '', chosen_county_metric: [] }
+async function Census (year=2021){
+    var object = { year: year, chosen_region_metric: [], chosen_state: '', chosen_state_metric: [], chosen_county: '', chosen_county_metric: [] }
     
     await census.getVariablesProcessed(object)
     await census.getStates(object)
@@ -223,7 +224,7 @@ census.getMainDemographyData = async function(cobject, variable_query, metric, c
 */
 census.getDataRegion = async function (cobject){
     var query = cobject.chosen_region_metric
-    var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=region:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=region:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
     content=await res.json()
     content=content.slice(1)
     var treated = []
@@ -257,7 +258,7 @@ census.getDataRegion = async function (cobject){
 */
 census.getDataState = async function (cobject){
     var query = cobject.chosen_state_metric
-    var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
     var content=await res.json()
     content=content.slice(1)
     var treated = []
@@ -296,7 +297,7 @@ census.getDataCountyByState = async function (cobject){
     var query = cobject.chosen_county_metric
     var state = cobject.chosen_state
     var state_id = cobject.states.filter(el => el.name==state )[0].id
-    var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${state_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${state_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
     var content=await res.json()
     content=content.slice(1)
     var treated = []
@@ -343,7 +344,7 @@ census.getDataCountyAllStates = async function (cobject){
           var temp = table.slice(i, end)
           info = info.concat( await Promise.all( temp.map( async tab => {
               var url = tab.link_details
-              var enrich = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${tab.id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+              var enrich = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${tab.id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
               enrich = await enrich.json()
               enrich = enrich.slice(1)
               await sleep(300)
@@ -396,8 +397,8 @@ census.getDataSubdivisionByStateAndCounty = async function (cobject){
     var county = cobject.chosen_county
     var state_id = cobject.states.filter(el => el.name==state )[0].id
     var county_id = cobject.dict_counties_geo[state].filter(el => el.county==county )[0].code
-    console.log(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var res = await fetch(`https://api.census.gov/data/2021/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    console.log(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
     var content=await res.json()
     content=content.slice(1)
     var treated = []
@@ -881,6 +882,33 @@ census.getVariableDetails = async function (link){
         result    = { 'details_data': table, 'retrieval_dict': retrieval_dict, 'columns': cols, 'viz_unique_col_values': unique_col_values }
     }
     return result
+}
+
+/** 
+* Fill select options with all available years
+* 
+* @param {Object} cobject Census library object
+* @param {string} container Container to the select tag to be filled
+*
+*
+* @example
+* let v = await Census()
+* let dat = census.makeFillYearSelect(v, 'select_year')
+*/
+census.makeFillYearSelect = async function (container){
+    var ide = container.split('_')[1]
+    
+    var htmls=""
+    var j=0
+    for(var i = 2021; i>=2005; i--){
+        var sel= (j==0) ? 'selected' : ''
+        if(i != 2020){
+            htmls+=`<option value="${i}" ${sel} > ${i} </option>`
+        }
+        j+=1
+    }
+    
+    document.getElementById(container).innerHTML=htmls
 }
 
 /** 
