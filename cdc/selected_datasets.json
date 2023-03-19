@@ -72,6 +72,7 @@
         "filter_value_general": "",
         "filter_total": "Overall",
         "filters_available": ["Gender", "Age", "Education", "Race"],
+        "filters_mask_total": ["Overall", "All Ages", "All Grades", "All Races"],
         "generalTopic" : "",
         "organizationTopic": "TopicDesc",
         "organizationQuestion": "MeasureDesc",

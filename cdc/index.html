@@ -75,16 +75,35 @@
                                                 <div id='filters_context'> </div>
                                         </div>
                                         
-                                        <input class="btn btn-primary mt-3" type="button" id="bfilter" onclick="filterByQuestion()" value="Filtrar" />
+                                        <input class="btn btn-primary mt-3" type="button" id="bfilter" onclick="filterByQuestion()" value="Filter" />
                                     </div>
                                     
                                     <div id="main_container" class="mt-3 col-12"> </div>
                                     
-                                    <h4 id="info2" style="display: none"> Places by Categories (click in the bar to see the distribution of places by types): </h4>
-                                    <div class="col-12"  id="summary_plot_cats"> </div>
-                                    
-                                    <h4 id="info3" style="display: none" > Places by Types <span id='catn' > </span>: </h4>
-                                    <div class="col-12"  id="summary_plot_types"> </div>
+                                    <div class="col-12" id="plots_comparison" style="display: none;">
+                                        <div class="accordion" id="accordionExample">
+                                                    
+                                          <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingOne">
+                                              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                (Location: <strong id='locinfo'></strong> ) - Comparison by demographic variable stratification
+                                              </button>
+                                            </h2>
+                                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" >
+                                              <div class="accordion-body">
+                                                    <div class="form-group col-12" >
+                                                        <label class="fields mr-2" style="text-align: right;"  >Filter Metric to plot:</label>
+                                                        <input type="text" id="xaxis_filter" class="form-control metric_filter mr-3 fields" placeholder="Search for a metric" />
+                                                        <select class="form-control" id="options_xaxis" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'xaxis_auxiliary_fields')" > </select> 
+                                                        <div class="mt-2" id='xaxis_auxiliary_fields' > </div>
+                                                        
+                                                    </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          
+                                        </div>
+                                    </div>
                                     
                                 </div>
                             </div>

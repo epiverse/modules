@@ -4,6 +4,8 @@
                         console.log(ds)
                         
                         //var lev = level_in.value
+                        bfilter.value="Filtering ..."
+                        bfilter.disabled=true
                         Cdc(ds).then( (val) => {
                             console.log(val)
                             cobj = val
@@ -11,13 +13,21 @@
                             setTimeout( async function () { 
                                 //await cdc.getDistinctValues(cobj, cobj.active_dataset.timeColumn, 'desc', 'select_year')
                                 await cdc.makeFillIndicatorFilters(cobj, 'filters_context')
-                                await cdc.getDataGeneratePlotByQuestion(cobj, 'main_container', callback_handle_location_chosen)
+                                cdc.getDataGeneratePlotByQuestion(cobj, 'main_container', callback_handle_location_chosen).then( (val) => {
+                                    bfilter.value="Filter"
+                                    bfilter.disabled=false
+                                } )
                             }, 500);
                         } ) 
                     }
                     
                     filterByQuestion = () => {
-                        cdc.getDataGeneratePlotByQuestion(cobj, 'main_container', callback_handle_location_chosen).then( (val) => {} )
+                        bfilter.value="Filtering ..."
+                        bfilter.disabled=true
+                        cdc.getDataGeneratePlotByQuestion(cobj, 'main_container', callback_handle_location_chosen).then( (val) => {
+                            bfilter.value="Filter"
+                            bfilter.disabled=false
+                        } )
                     }
                     
                     callback_handle_location_chosen = async (data, selection) => {

@@ -340,7 +340,7 @@ cdc.getDataGeneratePlotByQuestion = async function (cobject, container, callback
 }
 
 /** 
-* Get data from cdc according to topics, questions and responses by state/location
+* Get data from cdc according to topics, questions and responses by state/location considering the overall statistics of demographic variables (age, gender, race, income, education, etc)
 * 
 * @param {Object} cobject Cdc library object.
 *
@@ -369,14 +369,16 @@ cdc.filterDataWithQuestionByState = async function(cobject){
         var field=''
         if( cobject.active_dataset['filter_general']!='' ){
             field=cobject.active_dataset['filter_general']
+            whereValue.push(`${field}='${cobject.active_dataset['filter_total']}'`)
         }
         else{
             if( cobject.active_dataset['filters_available'].length > 0 ){
-                field=cobject.active_dataset['filters_available'][0]
+                var i =0
+                for (var c of cobject.active_dataset['filters_available']){
+                    whereValue.push(`${c}='${ cobject.active_dataset['filters_mask_total'][i] }'`)
+                    i+=1
+                }
             }
-        }
-        if(field!=''){
-            whereValue.push(`${field}='${cobject.active_dataset['filter_total']}'`)
         }
     }
     whereValue = whereValue.join(' and ')
