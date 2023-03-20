@@ -265,7 +265,9 @@ cdc.filterDataByDemographicVariable = async function (cobject, filters, flagUpda
             var field=''
             if( cobject.active_dataset['filter_value_general']!='' ){
                 field=cobject.active_dataset['filter_value_general']
-                whereValue.push(`${field}='${cobject.active_dataset['filter_total']}'`)
+                if( cobject.active_dataset['filter_total'] != "None"){
+                    whereValue.push(`${field}='${cobject.active_dataset['filter_total']}'`)
+                }
             }
             else{
                 if( cobject.active_dataset['filters_available'].length > 0 ){
@@ -490,10 +492,12 @@ cdc.fillDemographicVariableFilters = async function (cobject, container){
 */
 cdc.changeDemographicValuesSelect = function (cobject, key){
     var aux=''
-    cobject.demographic_filters['filters'][key].forEach(el => {
-        aux+=`<option value="${el}" >${el}</option>`
-    })
-    selectValue.innerHTML=aux
+    if( Object.keys( cobject.demographic_filters['filters'] ).includes(key) ){
+        cobject.demographic_filters['filters'][key].forEach(el => {
+            aux+=`<option value="${el}" >${el}</option>`
+        })
+        selectValue.innerHTML=aux
+    }
 }
 
 /** 
