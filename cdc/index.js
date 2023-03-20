@@ -19,8 +19,22 @@
                                     
                                     cobj.chosen_location = cobj.resultsByQuestion.filter(el => el.id!=null)[0][cobj.active_dataset['locationField']]
                                     locinfo.innerHTML=cobj.chosen_location
-                                    plots_comparison.style.display=''
-                                    await cdc.getDataGeneratePlotByQuestionComparisonVariables(cobj, 'variable_comparison')
+                                    
+                                    var dat = await cdc.getDataGeneratePlotByQuestionComparisonVariables(cobj, 'variable_comparison')
+                                    if(Object.keys(dat).length==0){
+                                        plots_comparison.style.display='none'
+                                    }
+                                    else{
+                                        plots_comparison.style.display=''
+                                    }
+                                    
+                                    cdc.vizFillDescriptionTable(cobj, 'filtered').then( (val) => {
+                                        if(cobj.filteredDataDemographic!=null && cobj.filteredDataDemographic!=undefined){
+                                            if(cobj.filteredDataDemographic['table'].length>0){
+                                                area_filters.style.display=''
+                                            }
+                                        }
+                                    })
                                 } )
                             }, 500);
                         } ) 

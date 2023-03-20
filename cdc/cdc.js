@@ -200,6 +200,396 @@ cdc.getIndicatorValues = async function (cobject){
 }
 
 /** 
+* Filter data by demographic variable values
+* 
+* @param {Object} cobject Cdc library object
+* @param {Object} filters Filters object where the keys are the fields and the values are those selected by the user, if null, it will return the overall
+* @param {boolean} flagUpdateTable Signal to get new filtered data and update visualization table
+* @param {boolean} flagFiltersBySelect Signal to get the filter values from the select previously mounted
+*
+* 
+* @returns {Object} Columns and array of data table containing place, y value, low and high confidence limit
+* 
+* @example
+* let v = await Cdc('wsas-xwh5')
+* await cdc.filterDataByDemographicVariable(v, {'Age': 'All Ages', 'Gender': 'Female', 'Race': 'All Races', 'Education': 'All Grades' },false, false )
+*/
+cdc.filterDataByDemographicVariable = async function (cobject, filters, flagUpdateTable, flagFiltersBySelect){
+    if(cobject.active_dataset==undefined){
+        await cdc.getDatasets(cobject)
+    }
+
+    var cols=["organizationTopic", "organizationQuestion", "organizationResponse", "organizationYear"]
+    var mapCols=[]
+    var whereValue=[]
+    // whereValue.push( `${cobject.active_dataset['timeColumn']}='${cobject.year}'` )
+    for (var c of cols){
+        var mapped = cobject.active_dataset[ c ]
+        if( mapped != ""){
+            var label = c.replace('organization','')
+            mapCols.push(mapped)
+            var value = eval('select'+label).value.replace('+','%2b')
+            if(value!="All"){
+                whereValue.push(`${mapped}='${ value }'`)
+            }
+        }
+    }
+    
+    if(flagFiltersBySelect){
+        var filters={}
+        if(cobject.active_dataset['filter_general']!=""){
+            filters[ cobject.active_dataset['filter_general'] ] = selectVariable.value
+            filters[ cobject.active_dataset['filter_value_general'] ] = document.getElementById('selectValue').value
+        }
+        else{
+            if( cobject.active_dataset['filters_available'].length>0 ){
+                for (var c of cobject.active_dataset['filters_available'] ){
+                    var label = c.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
+                    filters[c] = eval('select_'+label).value
+                }
+            }
+        }
+    }
+    
+    if(filters==null){
+        if(cobject.active_dataset['filter_total']!=""){
+            var field=''
+            if( cobject.active_dataset['filter_value_general']!='' ){
+                field=cobject.active_dataset['filter_value_general']
+                whereValue.push(`${field}='${cobject.active_dataset['filter_total']}'`)
+            }
+            else{
+                if( cobject.active_dataset['filters_available'].length > 0 ){
+                    var i =0
+                    for (var c of cobject.active_dataset['filters_available']){
+                        whereValue.push(`${c}='${ cobject.active_dataset['filters_mask_total'][i] }'`)
+                        i+=1
+                    }
+                }
+            }
+        }
+    }
+    else{
+        for (var k of Object.keys(filters) ){
+            whereValue.push(`${k} = '${filters[k]}'`)
+        }
+    }
+    
+    whereValue = whereValue.join(' and ')
+    
+    var columns=['Location', 'Prevalence (%)', 'Low Value', 'High Value']
+    
+    var selectValue=[ cobject.active_dataset['locationField'], cobject.active_dataset['yValue'], cobject.active_dataset['lowLimit'], cobject.active_dataset['highLimit'] ]
+    selectValue = selectValue.join(',')
+    
+    console.log(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${whereValue}&$order=${cobject.active_dataset['yValue']} desc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+    
+    var field = mapCols.join(',')
+    var res = await fetch(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${whereValue}&$order=${cobject.active_dataset['yValue']} desc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+    var content=await res.json()
+    content = content.filter( el => Object.keys(el).length == selectValue.split(',').length )
+    
+    var result = {'columns': columns, 'table': content}
+    cobject.filteredDataDemographic=result
+    
+    if(flagUpdateTable){
+        cobject.hits = result['table']
+        cdc.vizChangePage(cobject, 1)
+    }
+    
+    return result
+}
+
+/** 
+* Get and organize Demographic variable values
+* 
+* @param {Object} cobject Cdc library object.
+*
+* 
+* @returns {object} Demographic filters available from CDC dataset
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* await cdc.getDemographicVariableValues(v)
+*/
+cdc.getDemographicVariableValues = async function (cobject){
+    var filters={}
+    
+    var selectValue=[]
+    var flag=true
+    var flagSingle=true
+    if(  cobject.active_dataset['filters_available'].length>0 &&  cobject.active_dataset['filter_general']=='' ){
+        for (var c of cobject.active_dataset['filters_available'] ){
+            selectValue.push(c)
+            filters[c]=[]
+        }
+        flagSingle=false
+    }
+    else{
+        if( cobject.active_dataset['filter_value_general']!='' && cobject.active_dataset['filter_general']!='' ){
+            selectValue.push(cobject.active_dataset['filter_general'])
+            selectValue.push(cobject.active_dataset['filter_value_general'])
+        }
+        else{
+            flag=false
+        }
+    }
+
+    selectValue=selectValue.join(',')
+    
+    if(flag){
+        var res = await fetch(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+        var content=await res.json()
+        
+        content = content.filter( el => Object.keys(el).length == selectValue.split(',').length )
+        content.forEach( el => {
+            if(flagSingle){
+                var variable = el[ cobject.active_dataset['filter_general'] ]
+                var variable_value = el[ cobject.active_dataset['filter_value_general'] ]
+                if( ! Object.keys(filters).includes(variable) ){
+                    filters[variable]=[]
+                }
+                if( ! filters[variable].includes(variable_value) ){
+                    filters[variable].push(variable_value)
+                }
+            }
+            else{
+                for (var c of cobject.active_dataset['filters_available'] ){
+                    if ( ! filters[c].includes( el[c] ) ){
+                        filters[c].push( el[c] )
+                    }
+                }
+            }
+        })
+        
+        for (var k of Object.keys(filters)){
+            filters[k].sort()
+        }
+    }
+    
+    var result = { flagSingle: flagSingle, filters: filters }
+    cobject.demographic_filters = result
+    
+    return result
+}
+
+/** 
+* Prepare and fill demographic variable select
+* 
+* @param {Object} cobject Cdc library object.
+* @param {string} container Target container identifier to fill a select with the values options
+*
+* 
+* @returns {string} HTML content with the options
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* await cdc.getDemographicVariableValues(v)
+* cdc.fillDemographicVariableFilters(v, 'table_demo_filters')
+*/
+cdc.fillDemographicVariableFilters = async function (cobject, container){
+    var filters = cobject.demographic_filters
+    if(filters==null || filters==undefined){
+        filters = await cdc.getDemographicVariableValues(cobject)
+    }
+    
+    var htmls=''
+    
+    if(filters.flagSingle){
+        var aux = ''
+        var keys = Object.keys(filters['filters'])
+        keys.forEach(el => {
+            var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
+            aux+=`<option value="${el}" ${sel} >${el}</option>`
+        })
+        
+        htmls += `
+            <div style="display: inline-block;" >
+                <label class="fields mr-2" style="text-align: right;" >Variable:</label>
+                <select class="form-control mr-3" id="selectVariable" onChange="cdc.changeDemographicValuesSelect(cobj, this.value)" > ${aux} </select>
+            </div>
+        `
+        aux=''
+        filters['filters'][keys[0]].forEach(el => {
+            var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
+            aux+=`<option value="${el}" ${sel} >${el}</option>`
+        })
+        
+        htmls += `
+            <div style="display: inline-block;" >
+                <label class="fields mr-2" style="text-align: right;" >Variable value:</label>
+                <select class="form-control mr-3" id="selectValue" > ${aux} </select>
+            </div>
+        `
+    }
+    else{
+        var aux = ''
+        var keys = Object.keys(filters['filters'])
+        var i=0
+        keys.forEach(e => {
+            var mask = cobject.active_dataset['filters_mask_total'][i]
+            aux=''
+            filters['filters'][e].forEach(el => {
+                var sel = (el == mask) ? 'selected' : ''
+                aux+=`<option value="${el}" ${sel} >${el}</option>`
+            })
+            
+            var label = e.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
+            htmls += `
+                <div style="display: inline-block;" >
+                    <label class="fields mr-2" style="text-align: right;" >${e}:</label>
+                    <select class="form-control mr-3" id="select_${label}" > ${aux} </select>
+                </div>
+            `
+            i+=1
+        })
+    }
+    
+    htmls+=`<input class="btn btn-primary mt-3" type="button" id="bfilter" onclick="cdc.filterDataByDemographicVariable (cobj, null, true, true).then( (val) => {} )" value="Filter" />`
+    
+    eval(container).innerHTML=htmls
+}
+
+/** 
+* Change demographic variable select
+* 
+* @param {Object} cobject Cdc library object.
+* @param {string} key Variable name
+*
+* 
+* @returns {string} HTML content with the options
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* await cdc.getDemographicVariableValues(v)
+* cdc.fillDemographicVariableFilters(v, 'table_demo_filters')
+* cdc.changeDemographicValuesSelect(v, 'Gender')
+*/
+cdc.changeDemographicValuesSelect = function (cobject, key){
+    var aux=''
+    cobject.demographic_filters['filters'][key].forEach(el => {
+        aux+=`<option value="${el}" >${el}</option>`
+    })
+    selectValue.innerHTML=aux
+}
+
+/** 
+* Fill table with available processed data gathered from IARC
+*
+* @param {string} cause Chosen cause
+* @param {string} by Chosen dimension
+* @param {Object} objIarc IARC Library object
+* @param {string} idContainer ID of the html div that will be filled
+*
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* cdc.vizFillDescriptionTable(v, 'filtered')
+*/
+cdc.vizFillDescriptionTable = async function(cobject, idContainer){
+    eval(idContainer).style.display='none'
+    eval(idContainer).innerHTML='<div id="table_demo_filters" ></div>'
+    
+    var cols = ['Location', 'Prevalence (%)', 'Low Value', 'High Value']
+    var aux=''
+    for( var k of cols ){
+        aux+=`
+            <th>${k}</th>
+        `
+    }
+    
+    var html_filters = await cdc.fillDemographicVariableFilters(cobject, 'table_demo_filters')
+    
+    var table = `
+        <table class="table table-striped mt-3" > 
+            <thead id="tableHeader" > 
+                <tr>
+                    ${aux}
+                </tr>
+            </thead>
+            
+            <tbody id="tableBody" > </tbody>
+        </table>
+
+        <nav aria-label="pagination">
+            <ul class="pagination" id="pagesContainer"> </ul>
+        </nav>
+    `;
+    var flag = false
+    if(cobject.filteredDataDemographic==null || cobject.filteredDataDemographic==undefined){
+        await cdc.filterDataByDemographicVariable(cobject, null, false, false)
+    }
+    var hits = cobject.filteredDataDemographic['table']
+    
+    if(hits.length>0){
+        cobject.hits=hits
+        eval(idContainer).style.display=''
+        eval(idContainer).innerHTML+=table
+        cdc.vizChangePage(cobject, 1)
+        flag=true
+    }   
+    
+    if(!flag){
+        alert('There were no hits')
+    }
+}
+
+/** 
+* Change page of rendered data table
+*
+* @param {Object} objIarc IARC Library object
+* @param {number} start Page number
+*
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* cdc.vizFillDescriptionTable(v, 'filtered')
+* cdc.vizChangePage(v, 4)
+*/
+cdc.vizChangePage = function(cobject, start){
+    var hits = cobject.hits
+    var itemsPage = 20
+    if(hits.length>0){
+        if(hits.length > itemsPage){
+            var numPages = Math.ceil(hits.length/itemsPage)
+            
+            var pagesContent=''
+            for(var i=1; i<=numPages; i++){
+                pagesContent+=`<li class="page-item " id="pit${i}" ><a class="page-link" href="javascript:void(0)" onClick="cdc.vizChangePage(cobj, ${i}); event.preventDefault();" > ${i} </a></li>`
+            }
+            pagesContainer.innerHTML=pagesContent
+            
+            document.getElementById('pit'+(start)).className='page-item active'
+        }  
+        else{
+            pagesContainer.innerHTML=''
+        }
+        start=(start-1)*itemsPage
+        hits = hits.slice(start, start+itemsPage)
+        
+        var ht = ''
+        hits.forEach(el => {
+            var aux=''
+            for( var k of Object.keys(el) ){
+                aux+=`
+                    <td>${el[k]}</td>
+                `
+            }
+            
+            ht+=`
+            <tr>
+                ${aux}
+            </tr>
+            `
+        })
+        
+        tableBody.innerHTML=ht
+        filtered.style.display='block' 
+        
+    }   
+}
+
+/** 
 * Filter questions/measures and responses collected from CDC and returns the values for the category
 * 
 * @param {Object} cobject Cdc library object.
@@ -346,6 +736,8 @@ cdc.getDataGeneratePlotByQuestion = async function (cobject, container, callback
 * @param {Object} cobject Cdc library object
 * @param {string} container Container identifier to draw the plot
 *
+*
+* @returns {object} Object containing the y values and error range for each value of the available demographic variable
 * 
 * @example
 * let v = await Cdc()
@@ -357,12 +749,20 @@ cdc.getDataGeneratePlotByQuestionComparisonVariables = async function (cobject, 
     if ( Object.keys(comparison_variables_data).length>0){
         cdc.generatePlotErrorBarComparisonVariable(cobject, comparison_variables_data, container)
     }
+    else{
+        eval(container).innerHTML='There is no demographic variable to compare.'
+    }
+    
+    return comparison_variables_data
 }
 
 /** 
 * Get data from cdc according to topics, questions and responses by state/location considering the overall statistics of demographic variables (age, gender, race, income, education, etc)
 * 
 * @param {Object} cobject Cdc library object.
+*
+*
+* @returns {array} Array containing the flag to signalize the plot style (coordinates or by location name), the list of states (when available) and the filtered/processed data table
 *
 * 
 * @example
@@ -501,6 +901,7 @@ cdc.filterDataWithQuestionByState = async function(cobject){
 * 
 * @param {Object} cobject Cdc library object.
 *
+* @returns {object} Object containing the y values and error range for each value of the available demographic variable
 * 
 * @example
 * let v = await Cdc('hn4x-zwk7')
@@ -565,6 +966,7 @@ cdc.filterDataWithQuestionComparisonVariables = async function(cobject){
         })
     }
      
+    /*
     if( cobject.active_dataset['filters_available'].length > 0  && cobject.active_dataset['filter_general']=='' ){
         treated={}
         var mapp = {}
@@ -617,7 +1019,7 @@ cdc.filterDataWithQuestionComparisonVariables = async function(cobject){
             
             i+=1
         }
-    }
+    }*/
     
     return treated
 }
