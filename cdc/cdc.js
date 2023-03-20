@@ -8,15 +8,24 @@ console.log('cdc.js loaded')
  * @property {Function} Cdc - {@link Cdc}
  *
  * @namespace cdc
- * @property {Function} getStateCodeMap - {@link cdc.getStateCodeMap}
+  * @property {Function} getStateCodeMap - {@link cdc.getStateCodeMap}
  * @property {Function} getDatasets - {@link cdc.getDatasets}
  * @property {Function} makeFillSelectDatasets - {@link cdc.makeFillSelectDatasets}
  * @property {Function} getDistinctValues - {@link cdc.getDistinctValues}
  * @property {Function} getIndicatorValues - {@link cdc.getIndicatorValues}
+ * @property {Function} filterDataByDemographicVariable - {@link cdc.filterDataByDemographicVariable}
+ * @property {Function} getDemographicVariableValues - {@link cdc.getDemographicVariableValues}
+ * @property {Function} fillDemographicVariableFilters - {@link cdc.fillDemographicVariableFilters}
+ * @property {Function} changeDemographicValuesSelect - {@link cdc.changeDemographicValuesSelect}
+ * @property {Function} vizFillDescriptionTable - {@link cdc.vizFillDescriptionTable}
+ * @property {Function} vizChangePage - {@link cdc.vizChangePage}
  * @property {Function} changeIndicatorSelect - {@link cdc.changeIndicatorSelect}
  * @property {Function} makeFillIndicatorFilters - {@link cdc.makeFillIndicatorFilters}
  * @property {Function} getDataGeneratePlotByQuestion - {@link cdc.getDataGeneratePlotByQuestion}
+ * @property {Function} getDataGeneratePlotByQuestionComparisonVariables - {@link cdc.getDataGeneratePlotByQuestionComparisonVariables}
  * @property {Function} filterDataWithQuestionByState - {@link cdc.filterDataWithQuestionByState}
+ * @property {Function} filterDataWithQuestionComparisonVariables - {@link cdc.filterDataWithQuestionComparisonVariables}
+ * @property {Function} generatePlotErrorBarComparisonVariable - {@link cdc.generatePlotErrorBarComparisonVariable}
  * @property {Function} generatePlotState - {@link cdc.generatePlotState}
  * @property {Function} generatePlotByCoordinate - {@link cdc.generatePlotByCoordinate}
  * @property {Function} loadScript - {@link cdc.loadScript}
