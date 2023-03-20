@@ -28,6 +28,7 @@ console.log('cdc.js loaded')
  *
  * @object Cdc
  * @attribute {string} datasetId CDC Dataset identifier for analysis.
+ * @attribute {string} chosen_location Chosen location for analysis
  * @attribute {number} year Chosen year for analysis
  * @attribute {array} datasets List of available Datasets.
  * @attribute {object} active_dataset Object with chosen dataset's information.
@@ -48,7 +49,7 @@ console.log('cdc.js loaded')
 * let v = await Cdc('hn4x-zwk7')
 */
 async function Cdc (datasetId){
-    var object = { datasetId: datasetId}
+    var object = { datasetId: datasetId, chosen_location: ''}
     //var dt = await cdc.getDatasets()
     //await cdc.getIndicatorValues(object)
     var temp = await Promise.all( [ cdc.getDatasets(object), cdc.getIndicatorValues(object), cdc.getStateCodeMap(object) ] )
@@ -340,6 +341,25 @@ cdc.getDataGeneratePlotByQuestion = async function (cobject, container, callback
 }
 
 /** 
+* Get data and Generate plot by question comparing variables 
+* 
+* @param {Object} cobject Cdc library object
+* @param {string} container Container identifier to draw the plot
+*
+* 
+* @example
+* let v = await Cdc()
+* await cdc.getDataGeneratePlotByQuestionComparisonVariables(v, 'variable_comparison')
+*/
+cdc.getDataGeneratePlotByQuestionComparisonVariables = async function (cobject, container){
+    var comparison_variables_data = await cdc.filterDataWithQuestionComparisonVariables(cobject)
+    
+    if ( Object.keys(comparison_variables_data).length>0){
+        cdc.generatePlotErrorBarComparisonVariable(cobject, comparison_variables_data, container)
+    }
+}
+
+/** 
 * Get data from cdc according to topics, questions and responses by state/location considering the overall statistics of demographic variables (age, gender, race, income, education, etc)
 * 
 * @param {Object} cobject Cdc library object.
@@ -426,7 +446,7 @@ cdc.filterDataWithQuestionByState = async function(cobject){
                         aux['result'] = Number(el[ cobject.active_dataset['yValue'] ])
                         aux['result_min'] = Number(el[ cobject.active_dataset['lowLimit'] ])
                         aux['result_max'] = Number(el[ cobject.active_dataset['highLimit'] ])
-                        aux['infoTooltip'] = `${aux['name']}: ${aux['result']}% <br /> <strong>Min: </strong>${aux['result_min']}% - <strong>Max: </strong>${aux['result_max']}%`
+                        aux['infoTooltip'] = `${el[ cobject.active_dataset['locationField'] ]} -> ${aux['name']}: ${aux['result']}% <br /> <strong>Min: </strong>${aux['result_min']}% - <strong>Max: </strong>${aux['result_max']}%`
                         if( ! states.includes(aux['id']) ){
                             states.push( aux['id'] )
                         }
@@ -441,7 +461,7 @@ cdc.filterDataWithQuestionByState = async function(cobject){
                     aux['result'] = Number(el[ cobject.active_dataset['yValue'] ])
                     aux['result_min'] = Number(el[ cobject.active_dataset['lowLimit'] ])
                     aux['result_max'] = Number(el[ cobject.active_dataset['highLimit'] ])
-                    aux['infoTooltip'] = `${aux['name']}: ${aux['result']}% <br /> <strong>Min: </strong>${aux['result_min']}% - <strong>Max: </strong>${aux['result_max']}%`
+                    aux['infoTooltip'] = `${el[ cobject.active_dataset['locationField'] ]} -> ${aux['name']}: ${aux['result']}% <br /> <strong>Min: </strong>${aux['result_min']}% - <strong>Max: </strong>${aux['result_max']}%`
                     if( ! states.includes(aux['id']) ){
                         states.push( aux['id'] )
                     }
@@ -475,6 +495,207 @@ cdc.filterDataWithQuestionByState = async function(cobject){
     
     return [flagCoordinate, states, treated]
 }
+
+/** 
+* Get data from cdc according to topics, questions and responses by state/location with comparison across demographic variables (age, gender, race, income, education, etc)
+* 
+* @param {Object} cobject Cdc library object.
+*
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* var comparison_variables_data = await cdc.filterDataWithQuestionComparisonVariables(v)
+*/
+cdc.filterDataWithQuestionComparisonVariables = async function(cobject){
+    var cols=["organizationTopic", "organizationQuestion", "organizationResponse", "organizationYear"]
+    var mapCols=[]
+    var whereValue=[]
+    // whereValue.push( `${cobject.active_dataset['timeColumn']}='${cobject.year}'` )
+    for (var c of cols){
+        var mapped = cobject.active_dataset[ c ]
+        if( mapped != ""){
+            var label = c.replace('organization','')
+            mapCols.push(mapped)
+            var value = eval('select'+label).value.replace('+','%2b')
+            if(value!="All"){
+                whereValue.push(`${mapped}='${ value }'`)
+            }
+        }
+    }
+    
+    var treated={}
+    
+    if( cobject.active_dataset['filter_general']!='' && cobject.active_dataset['filter_value_general']!='' ){
+         var auxWhereValue = whereValue
+         
+         auxWhereValue.push( `${cobject.active_dataset['locationField']}='${cobject.chosen_location}'` )
+         if(cobject.active_dataset['filter_total']!=""){
+            var field=''
+            if( cobject.active_dataset['filter_general']!='' ){
+                field=cobject.active_dataset['filter_general']
+                auxWhereValue.push(`${field} != '${cobject.active_dataset['filter_total']}'`)
+            }
+        }
+        auxWhereValue = auxWhereValue.join(' and ')
+        
+        var selectValue=[ cobject.active_dataset['filter_general'], cobject.active_dataset['filter_value_general'], cobject.active_dataset['yValue'], cobject.active_dataset['lowLimit'], cobject.active_dataset['highLimit'] ]
+        selectValue = selectValue.join(',')
+        
+        console.log(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${auxWhereValue}&$order=${cobject.active_dataset['filter_general']} asc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+        
+        var field = mapCols.join(',')
+        var res = await fetch(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${auxWhereValue  }&$order=${cobject.active_dataset['filter_general']} asc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+        var content=await res.json()
+        content = content.filter( el => Object.keys(el).length>1 )
+        
+        treated={}
+        content.forEach( el => {
+            if( Object.keys(el).length == selectValue.split(',').length ){
+                var variable = el[ cobject.active_dataset['filter_general'] ]
+                var variable_name = el[ cobject.active_dataset['filter_value_general'] ]
+                var y = Number(el[ cobject.active_dataset['yValue'] ])
+                var miny = Number(el[ cobject.active_dataset['lowLimit'] ])
+                var maxy = Number(el[ cobject.active_dataset['highLimit'] ])
+                
+                if(! Object.keys(treated).includes(variable) ){
+                    treated[variable]={}
+                }
+                treated[variable][variable_name]=[y, miny, maxy]
+            }
+        })
+    }
+     
+    if( cobject.active_dataset['filters_available'].length > 0  && cobject.active_dataset['filter_general']=='' ){
+        treated={}
+        var mapp = {}
+        var i =0
+        for (var c of cobject.active_dataset['filters_available']){
+            mapp[ c ] = cobject.active_dataset['filters_mask_total'][i]
+            i+=1
+        }
+        
+        var i =0
+        for (var c of cobject.active_dataset['filters_available']){
+            treated[c]={}
+            var auxWhereValue = whereValue.slice()
+            console.log(auxWhereValue)
+            auxWhereValue.push( `${cobject.active_dataset['locationField']}='${cobject.chosen_location}'` )
+         
+            var j=0
+            for (var col of cobject.active_dataset['filters_available']){
+                if(c!=col){
+                    auxWhereValue.push(`${col} = '${ cobject.active_dataset['filters_mask_total'][j] }'`)
+                }
+                j+=1
+            }
+            auxWhereValue.push(`${c} != '${ cobject.active_dataset['filters_mask_total'][i] }'`)
+            auxWhereValue = auxWhereValue.join(' and ')
+            
+            var selectValue=[ c, cobject.active_dataset['yValue'], cobject.active_dataset['lowLimit'], cobject.active_dataset['highLimit'] ]
+            selectValue = selectValue.join(',')
+            
+            console.log(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${auxWhereValue}&$order=${c} asc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+            
+            var field = mapCols.join(',')
+            var res = await fetch(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${auxWhereValue}&$order=${c} asc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
+            var content=await res.json()
+            content = content.filter( el => Object.keys(el).length>1 )
+            
+            content.forEach( el => {
+                if( Object.keys(el).length == selectValue.split(',').length ){
+                    var variable_name = el[c]
+                    if(variable_name != cobject.active_dataset['filters_mask_total'][i] ){
+                        var y = el[ cobject.active_dataset['yValue'] ]
+                        var miny = el[ cobject.active_dataset['lowLimit'] ]
+                        var maxy = el[ cobject.active_dataset['highLimit'] ]
+                        
+                        treated[c][variable_name]=[y, miny, maxy]
+                    }
+                    
+                }
+            })
+            
+            i+=1
+        }
+    }
+    
+    return treated
+}
+
+/** 
+* Generate plots data from cdc according to topics, questions and responses by state/location with comparison across demographic variables (age, gender, race, income, education, etc)
+* 
+* @param {Object} cobject Cdc library object.
+* @param {Object} variable_data Comparison data object organized by dimensions (age, income, gender, race) and its variations (male, female, hispanic, latino, etc.)
+* @param {string} container Container identifier to draw the plot
+*
+* 
+* @example
+* let v = await Cdc('hn4x-zwk7')
+* var comparison_variables_data = await cdc.filterDataWithQuestionComparisonVariables(v)
+* cdc.generatePlotErrorBarComparisonVariable(v, comparison_variables_data, 'variable_comparison')
+*/
+cdc.generatePlotErrorBarComparisonVariable = function(cobject, variable_data, container){
+    eval(container).style.display='none'
+    
+    var htmls=""
+    for (var k of Object.keys(variable_data)){
+        var label = k.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
+        htmls+=`
+            <div class="col-12" >
+                <h4 >Compare prevalence across ${k} values</h4>
+                <div id="plot_${label}" ></div>
+            </div>
+        `
+    }
+    eval(container).innerHTML=htmls
+    
+    for (var k of Object.keys(variable_data)){
+        var x = Object.keys(variable_data[k])
+        var y = [] 
+        var ymin = []
+        var ymax = []
+        for(var v of x){
+            y.push( variable_data[k][v][0] )
+            ymin.push( variable_data[k][v][0] - variable_data[k][v][1] )
+            ymax.push( variable_data[k][v][2] - variable_data[k][v][0] )
+        }
+        //console.log(k, variable_data[k][v], y, ymin, ymax)
+        
+        var data = [
+          {
+            x: x,
+            y: y,
+            text: y,
+            error_y: {
+              type: 'data',
+              symmetric: false,
+              array: ymax,
+              arrayminus: ymin
+            },
+            type: 'bar'
+          }
+        ];
+        
+        var layout = {
+              xaxis: {
+                title: {
+                  text: k+' Variations'
+                },
+              },
+              yaxis: {
+                title: {
+                  text: 'Prevalence (%)'
+                }
+              }
+            };
+        
+        var label = k.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
+        Plotly.newPlot('plot_'+label, data, layout);
+    }
+    eval(container).style.display=''
+}
+
 
 /** 
 * Generate plot in the state scope of the cloropleth map

@@ -86,18 +86,12 @@
                                           <div class="accordion-item">
                                             <h2 class="accordion-header" id="headingOne">
                                               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                (Location: <strong id='locinfo'></strong> ) - Comparison by demographic variable stratification
+                                                (Location: <strong id='locinfo' style="margin-left: 5px;" ></strong> ) - Comparison by demographic variable stratification
                                               </button>
                                             </h2>
                                             <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" >
-                                              <div class="accordion-body">
-                                                    <div class="form-group col-12" >
-                                                        <label class="fields mr-2" style="text-align: right;"  >Filter Metric to plot:</label>
-                                                        <input type="text" id="xaxis_filter" class="form-control metric_filter mr-3 fields" placeholder="Search for a metric" />
-                                                        <select class="form-control" id="options_xaxis" onChange="census.makeFiltersVariableDetail(cobj, this.value, 'xaxis_auxiliary_fields')" > </select> 
-                                                        <div class="mt-2" id='xaxis_auxiliary_fields' > </div>
-                                                        
-                                                    </div>
+                                              <div class="accordion-body" id="variable_comparison" >
+                                                    
                                               </div>
                                             </div>
                                           </div>
