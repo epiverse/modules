@@ -287,9 +287,17 @@ cdc.filterDataByDemographicVariable = async function (cobject, filters, flagUpda
     var field = mapCols.join(',')
     var res = await fetch(`https://chronicdata.cdc.gov/resource/${cobject.datasetId}.json?$select=distinct%20${selectValue}&$where=${whereValue}&$order=${cobject.active_dataset['yValue']} desc&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO`)
     var content=await res.json()
-    content = content.filter( el => Object.keys(el).length == selectValue.split(',').length )
+    var ids=[]
+    var treated=[]
+    content=content.filter( el => Object.keys(el).length == selectValue.split(',').length )
+    content.forEach( el => {
+        if( ! ids.includes(el[ cobject.active_dataset['locationField'] ]) ){
+            ids.push( el[ cobject.active_dataset['locationField'] ] )
+            treated.push(el)
+        }
+    })
     
-    var result = {'columns': columns, 'table': content}
+    var result = {'columns': columns, 'table': treated}
     cobject.filteredDataDemographic=result
     
     if(flagUpdateTable){
@@ -395,59 +403,65 @@ cdc.fillDemographicVariableFilters = async function (cobject, container){
     
     var htmls=''
     
-    if(filters.flagSingle){
-        var aux = ''
-        var keys = Object.keys(filters['filters'])
-        keys.forEach(el => {
-            var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
-            aux+=`<option value="${el}" ${sel} >${el}</option>`
-        })
-        
-        htmls += `
-            <div style="display: inline-block;" >
-                <label class="fields mr-2" style="text-align: right;" >Variable:</label>
-                <select class="form-control mr-3" id="selectVariable" onChange="cdc.changeDemographicValuesSelect(cobj, this.value)" > ${aux} </select>
-            </div>
-        `
-        aux=''
-        filters['filters'][keys[0]].forEach(el => {
-            var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
-            aux+=`<option value="${el}" ${sel} >${el}</option>`
-        })
-        
-        htmls += `
-            <div style="display: inline-block;" >
-                <label class="fields mr-2" style="text-align: right;" >Variable value:</label>
-                <select class="form-control mr-3" id="selectValue" > ${aux} </select>
-            </div>
-        `
-    }
-    else{
-        var aux = ''
-        var keys = Object.keys(filters['filters'])
-        var i=0
-        keys.forEach(e => {
-            var mask = cobject.active_dataset['filters_mask_total'][i]
-            aux=''
-            filters['filters'][e].forEach(el => {
-                var sel = (el == mask) ? 'selected' : ''
+    if( Object.keys(filters['filters']).length>0 ){
+        if(filters.flagSingle){
+            var aux = ''
+            var keys = Object.keys(filters['filters'])
+            keys.forEach(el => {
+                var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
                 aux+=`<option value="${el}" ${sel} >${el}</option>`
             })
             
-            var label = e.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
             htmls += `
                 <div style="display: inline-block;" >
-                    <label class="fields mr-2" style="text-align: right;" >${e}:</label>
-                    <select class="form-control mr-3" id="select_${label}" > ${aux} </select>
+                    <label class="fields mr-2" style="text-align: right;" >Variable:</label>
+                    <select class="form-control mr-3" id="selectVariable" onChange="cdc.changeDemographicValuesSelect(cobj, this.value)" > ${aux} </select>
                 </div>
             `
-            i+=1
-        })
+            aux=''
+            filters['filters'][keys[0]].forEach(el => {
+                var sel = (cobject.active_dataset['filter_total'] == el) ? 'selected' : ''
+                aux+=`<option value="${el}" ${sel} >${el}</option>`
+            })
+            
+            htmls += `
+                <div style="display: inline-block;" >
+                    <label class="fields mr-2" style="text-align: right;" >Variable value:</label>
+                    <select class="form-control mr-3" id="selectValue" > ${aux} </select>
+                </div>
+            `
+        }
+        else{
+            var aux = ''
+            var keys = Object.keys(filters['filters'])
+            var i=0
+            keys.forEach(e => {
+                var mask = cobject.active_dataset['filters_mask_total'][i]
+                aux=''
+                filters['filters'][e].forEach(el => {
+                    var sel = (el == mask) ? 'selected' : ''
+                    aux+=`<option value="${el}" ${sel} >${el}</option>`
+                })
+                
+                var label = e.toLowerCase().replace(' ','_').replace('(','_').replace(')','_')
+                htmls += `
+                    <div style="display: inline-block;" >
+                        <label class="fields mr-2" style="text-align: right;" >${e}:</label>
+                        <select class="form-control mr-3" id="select_${label}" > ${aux} </select>
+                    </div>
+                `
+                i+=1
+            })
+        }
+        
+        htmls+=`<input class="btn btn-primary mt-3" type="button" id="bfilter" onclick="cdc.filterDataByDemographicVariable (cobj, null, true, true).then( (val) => {} )" value="Filter" />`
+        
+        eval(container).innerHTML=htmls
+        
+        if(filters.flagSingle){
+            cdc.changeDemographicValuesSelect(cobject, cobject.active_dataset['filter_total'])
+        }
     }
-    
-    htmls+=`<input class="btn btn-primary mt-3" type="button" id="bfilter" onclick="cdc.filterDataByDemographicVariable (cobj, null, true, true).then( (val) => {} )" value="Filter" />`
-    
-    eval(container).innerHTML=htmls
 }
 
 /** 

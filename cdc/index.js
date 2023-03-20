@@ -4,6 +4,8 @@
                         console.log(ds)
                         
                         //var lev = level_in.value
+                        area_filters.style.display='none'
+                        
                         bfilter.value="Filtering ..."
                         bfilter.disabled=true
                         Cdc(ds).then( (val) => {
