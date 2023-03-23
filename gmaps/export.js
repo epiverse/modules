@@ -64,6 +64,8 @@ let gmaps={}
 * var data = await gmaps.getPlacesData(v)
 */
 gmaps.getPlacesData = async (gobject) => {
+    info1.style.display='none'
+
     var container = document.getElementById("map")
     if(container==null){
         var s = document.createElement('div')
@@ -121,6 +123,7 @@ gmaps.getPlacesData = async (gobject) => {
             });
         }
     }
+    info1.style.display='block'
     
     return gobject.data_places
 }
@@ -136,6 +139,8 @@ gmaps.getPlacesData = async (gobject) => {
 * var data = await gmaps.plotSummaryCategories(v)
 */
 gmaps.plotSummaryCategories = async (gobject) => {
+    info2.style.display='none'
+    
     var bar = document.getElementById('summary_plot_cats');
     
     var x = []
@@ -177,6 +182,7 @@ gmaps.plotSummaryCategories = async (gobject) => {
         bar.on('plotly_click', function(data){
             gmaps.plotSummaryTypes(gobject, data.points[0].label)
         });
+        info2.style.display='block'
     }
     else{
         alert('No data to plot!')
@@ -195,6 +201,7 @@ gmaps.plotSummaryCategories = async (gobject) => {
 * var data = await gmaps.plotSummaryTypes(v, 'Education')
 */
 gmaps.plotSummaryTypes = async (gobject, category) => {
+    info3.style.display='none'
     var bar = document.getElementById('summary_plot_types');
     
     var x = []
@@ -239,6 +246,7 @@ gmaps.plotSummaryTypes = async (gobject, category) => {
                 console.log(places)
                 //searchShowPlacesTable(data.points[0].label)
             });
+            info3.style.display='block'
         }
         else{
             alert('No data to plot')
@@ -278,72 +286,8 @@ if(typeof(Plotly)=="undefined"){
 	gmaps.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 }
 
-/*
-
-let map;
-let service;
-let infowindow;
-
-function initMap() {
-  const ny = new google.maps.LatLng(40.730610, -73.935242);
-
-  infowindow = new google.maps.InfoWindow();
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: ny,
-    zoom: 15,
-  });
-
-  service = new google.maps.places.PlacesService(map);
-  var request = {
-    query: "Parks",
-    fields: ["name", "geometry"],
-  };
-  
-  service.findPlaceFromQuery(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        console.log(results)
-      for (let i = 0; i < results.length; i++) {
-        createMarker(results[i]);
-      }
-
-      //map.setCenter(results[0].geometry.location);
-    }
-  });
-  
-  request = {
-    location: ny,
-    radius: '1500',
-    type: ['park']
-  };
-
-  service.nearbySearch(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        console.log(results)
-      for (let i = 0; i < results.length; i++) {
-        createMarker(results[i]);
-      }
-      //map.setCenter(results[0].geometry.location);
-    }
-  });
-}
-
-function createMarker(place) {
-  if (!place.geometry || !place.geometry.location) return;
-
-  const marker = new google.maps.Marker({
-    map,
-    position: place.geometry.location,
-  });
-
-  google.maps.event.addListener(marker, "click", () => {
-    infowindow.setContent(place.name || "");
-    infowindow.open(map);
-  });
-}
-*/
 initMap = function() {}
 window.initMap = initMap;
 
-
-export { Gmaps }
+export { Gmaps, gmaps }
 

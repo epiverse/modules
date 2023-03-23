@@ -364,5 +364,6 @@ if(typeof(Plotly)=="undefined"){
 	iarc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 }
 
-export {Iarc}
+
+export {Iarc, iarc}
 
