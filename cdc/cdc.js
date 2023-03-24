@@ -1141,19 +1141,22 @@ cdc.generatePlotErrorBarComparisonVariable = function(cobject, variable_data, co
 * await cdc.generatePlotState(v, 'main_container', callback)
 */
 cdc.generatePlotState = async function (cobject, container, callback_handle_state){
+    let normalize = (val, arr) => { return ( val - Math.min.apply(null, arr))/(Math.max.apply(null, arr) - Math.min.apply(null, arr)) }
+    
     document.getElementById(container).style.display='none'
     var table = cobject.resultsByQuestion
     
     if(table.length>0){
         var locations = table.map( el => { return el['id'] } )
-        var captions = table.map( el => { return el['name'] } )
+        var captions = table.map( el => { return el['name']+' - Value: '+el['result']+'%'  } )
         var y = table.map( el => { return isNaN(el['result']) ? 0 : el['result'] } )
+        var normy = y.map(el => { return normalize(el, y) })
         
         var data = [{
               type: 'choropleth',
               locationmode: 'USA-states',
               locations: locations,
-              z: y,
+              z: normy,
               text: captions,
               colorbar: {
                   thickness: 0.2

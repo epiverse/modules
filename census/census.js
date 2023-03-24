@@ -576,17 +576,19 @@ census.getCountyByStatePlot = async function (cobject, variable_query, metric, c
 */
 census.generatePlotState = async function (cobject, table, container, callback_handle_state){
     var map = document.getElementById(container)
+    let normalize = (val, arr) => { return ( val - Math.min.apply(null, arr))/(Math.max.apply(null, arr) - Math.min.apply(null, arr)) }
     
     if(table.length>0){
         var locations = table.map( el => { return el['id'] } )
-        var captions = table.map( el => { return el['name'] } )
+        var captions = table.map( el => { return el['name']+' - Value: '+el['result']  } )
         var y = table.map( el => { return isNaN(el['result']) ? 0 : el['result'] } )
+        var normy = y.map(el => { return normalize(el, y) })
         
         var data = [{
               type: 'choropleth',
               locationmode: 'USA-states',
               locations: locations,
-              z: y,
+              z: normy,
               text: captions,
               colorbar: {
                   thickness: 0.2
@@ -614,7 +616,7 @@ census.generatePlotState = async function (cobject, table, container, callback_h
           Plotly.newPlot(container, data, layout, {showLink: false})
           .then( gd => {
              gd.on('plotly_click', async function(data){
-                cobject.chosen_state = data.points[0].text
+                cobject.chosen_state = data.points[0].text.split(' - ')[0]
                 
                 if(callback_handle_state!=null && callback_handle_state!=undefined){
                     await callback_handle_state(data)
