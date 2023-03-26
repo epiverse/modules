@@ -132,6 +132,7 @@ census.getMainDemographyData = async function(cobject, variable_query, metric, c
         
         // get subdivisions in a state https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=county%20subdivision:*&in=state:17
         // **** get subdivisions by county and state https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=county%20subdivision:*&in=state:17&in=county:197
+        // get places by state https://api.census.gov/data/2021/acs/acs1?get=NAME,B01001_001E&for=place:*&in=state:29
 
         // inside a state microdata
         //var res = await fetch(`https://api.census.gov/data/2021/acs/acs1/pums?get=SEX,PWGTP,SCHL,DIS,ESR,WAGP,RAC1P,MAR&for=public%20use%20microdata%20area:*&in=state:01`)
@@ -617,8 +618,6 @@ census.generatePlotState = async function (cobject, table, container, callback_h
               }
           };
           
-          var ide = container.split('_')[1]
-          document.getElementById(ide+'_plot').style.display=''
           
           Plotly.newPlot(container, data, layout, {showLink: false})
           .then( gd => {
@@ -658,7 +657,6 @@ census.generatePlotState = async function (cobject, table, container, callback_h
 * await census.generatePlotCounty(v, dat, 'map_county')
 */
 census.generatePlotCounty = async function (cobject, table, container){
-    var ide = container.split('_')[1]
     var map = document.getElementById(container)
     
     if(table.length>0){
@@ -707,7 +705,6 @@ census.generatePlotCounty = async function (cobject, table, container){
 
                 chart.draw(view, options);
                 
-                document.getElementById(ide+'_container').style.display=''
             },
             'packages': ['geochart'],
             'mapsApiKey': 'AIzaSyAHcL7uevM0muUusWOkucO1zY3O5CpS5VE'
@@ -735,8 +732,8 @@ census.generatePlotCounty = async function (cobject, table, container){
 */
 census.generatePlotCountyPolygon = async function (cobject, table, container){
     eval(container).innerHTML=`
-        <div id="epiverse_county_map" style="width: 800px; height: 600px;" ></div>
-        <div id="epiverseCountyStats"> <span id="statsMouseover"></span><br><span id="statsClicked"></span> </div>
+        <div id="epiverse_county_map" style="width: 800px; height: 600px; display: inline-block; float: left; margin-right: 15px" ></div>
+        <div id="epiverseCountyStats" style="display: inline-block;" > <span id="statsMouseover"></span><br><span id="statsClicked"></span> </div>
     `
     
     let normalize = (val, arr) => { return ( val - Math.min.apply(null, arr))/(Math.max.apply(null, arr) - Math.min.apply(null, arr)) }
@@ -754,6 +751,13 @@ census.generatePlotCountyPolygon = async function (cobject, table, container){
          center: new google.maps.LatLng( info.center[0], info.center[1] ),
        });
        
+       let infoWindow = new google.maps.InfoWindow({
+        content: "Click the map to get more information!",
+        position: { 'lat': info.center[0], 'lng': info.center[1] },
+      });
+
+      infoWindow.open(map);
+      
        var mapPolygons =[]
        var i =0
        info['data'].forEach( el => {
@@ -782,8 +786,40 @@ census.generatePlotCountyPolygon = async function (cobject, table, container){
             i+=1
             //mapPolygons[i].addListener('click', census.polyClick)
        })
+       
+       var geocoder = new google.maps.Geocoder();
+       
        for ( var p of mapPolygons){
-            //p.addListener('mouseover', census.polyMouseover(cobject, this) )
+            p.addListener('click', (event) => {
+                infoWindow.close()
+                console.log(event)
+                
+                geocoder.geocode( { location: event.latLng } )
+                .then((result) => {
+                  const { results } = result;
+                    var metric = ''
+                    var msg = `<b style="color:blue"> ${results[0].formatted_address} </b> `
+                    
+                    infoWindow = new google.maps.InfoWindow({
+                      position: event.latLng,
+                    });
+                    infoWindow.setContent(
+                      msg
+                    );
+                    infoWindow.open(map);
+                })
+                
+                /*
+                if(pol._i_!=-1){
+                    var metric = pol._info_
+                    var location = pol._county_
+                }
+                */
+                //statsMouseover.innerHTML=`<b style="color:blue"> ${location} </b> - Metric ${metric}</li>`
+                
+                
+            });
+            
             p.addListener('mouseover', census.polyMouseover )
             p.setMap(map)
        }
@@ -795,14 +831,12 @@ census.generatePlotCountyPolygon = async function (cobject, table, container){
 }
 
 census.polyMouseover=function(){
-    //this.setMap(null)
-    //this.setOptions({'fillColor':'blue'})
-    console.log(this)
     if(this._i_!=-1){
         var metric = this._info_
         var location = this._county_
         statsMouseover.innerHTML=`<b style="color:blue"> ${location} </b> - Metric ${metric}</li>`
     }
+    
 }
 
 /** 
@@ -991,7 +1025,6 @@ census.getVariableDetails = async function (link){
 * let dat = census.makeFillYearSelect(v, 'select_year')
 */
 census.makeFillYearSelect = async function (container){
-    var ide = container.split('_')[1]
     
     var htmls=""
     var j=0
@@ -1011,15 +1044,14 @@ census.makeFillYearSelect = async function (container){
 * 
 * @param {Object} cobject Census library object
 * @param {string} container Container to the select tag to be filled
+* @param {string} container_aux_fields Container to the div tg to be filled with available filters of the variable
 *
 *
 * @example
 * let v = await Census()
-* let dat = await census.makeFillVariableSelect(v, 'options_main')
+* let dat = await census.makeFillVariableSelect(v, 'options_main', 'main_auxiliary_fields')
 */
-census.makeFillVariableSelect = async function (cobject, container){
-    var ide = container.split('_')[1]
-    //var aux = cobject.census_variables.filter( el => el.globalvar==id_ )
+census.makeFillVariableSelect = async function (cobject, container, container_aux_fields){
     var aux = cobject.census_variables
     var htmls = ""
     var i=0
@@ -1034,7 +1066,7 @@ census.makeFillVariableSelect = async function (cobject, container){
         i+=1
     })
     document.getElementById(container).innerHTML=htmls
-    census.makeFiltersVariableDetail(cobject, first, ide+'_auxiliary_fields')
+    census.makeFiltersVariableDetail(cobject, first, container_aux_fields)
 }
 
 /** 
@@ -1043,14 +1075,14 @@ census.makeFillVariableSelect = async function (cobject, container){
 * @param {Object} cobject Census library object
 * @param {string} cobject Keyword to search among the available metrics
 * @param {string} container Container to the select tag to be filled
+* @param {string} container_aux_fields Container to the div tg to be filled with available filters of the variable
 *
 *
 * @example
 * let v = await Census()
-* let dat = await census.makeFilterVariableAutocomplete(v, 'income', 'options_main')
+* let dat = await census.makeFilterVariableAutocomplete(v, 'income', 'options_main', 'main_auxiliary_fields')
 */
-census.makeFilterVariableAutocomplete = async function (cobject, value, container){
-    var ide = container.split('_')[1]
+census.makeFilterVariableAutocomplete = async function (cobject, value, container, container_aux_fields){
     var aux = cobject.census_variables.filter( el => el.description.toLowerCase().includes(value.toLowerCase()) )
     var htmls = ""
     var first
@@ -1065,7 +1097,7 @@ census.makeFilterVariableAutocomplete = async function (cobject, value, containe
     
     if(htmls!=""){
         document.getElementById(container).innerHTML=htmls
-        census.makeFiltersVariableDetail(cobject, first, ide+'_auxiliary_fields')
+        census.makeFiltersVariableDetail(cobject, first, container_aux_fields)
     }
 }
 
@@ -1081,7 +1113,6 @@ census.makeFilterVariableAutocomplete = async function (cobject, value, containe
 * let dat = await census.makeFiltersVariableDetail(v, 'main_auxiliary_fields')
 */
 census.makeFiltersVariableDetail = async function (cobject, id_metric, container){
-    var ide = container.split('_')[0]
     var aux = cobject.census_variables.filter( el => el.global_var==id_metric )
     var tab = aux[0].variable_filters
     var htmls=""
@@ -1097,7 +1128,7 @@ census.makeFiltersVariableDetail = async function (cobject, id_metric, container
         htmls+=`
             <div style="display: inline-block;" >
                 <label class="fields mr-2" style="text-align: right;" > ${c} filter options:</label>
-                <select id="filter_${ide}_${i}" class="filter_${ide} form-control mr-3 fields" > ${options} </select>
+                <select id="filter_${container}_${i}" class="filter_${container} form-control mr-3 fields" > ${options} </select>
             </div>
         `
         i+=1

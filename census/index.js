@@ -6,10 +6,10 @@ function initCensus(){
                         Census(year).then( (val) => {
                             cobj = val
                             
-                            census.makeFillVariableSelect(cobj, 'options_main')
-                            census.makeFillVariableSelect(cobj, 'options_county')
-                            census.makeFillVariableSelect(cobj, 'options_xaxis')
-                            census.makeFillVariableSelect(cobj, 'options_yaxis')
+                            census.makeFillVariableSelect(cobj, 'options_main', 'main_auxiliary_fields')
+                            census.makeFillVariableSelect(cobj, 'options_county', 'county_auxiliary_fields')
+                            census.makeFillVariableSelect(cobj, 'options_xaxis', 'xaxis_auxiliary_fields')
+                            census.makeFillVariableSelect(cobj, 'options_yaxis', 'yaxis_auxiliary_fields')
                             
                             setTimeout( function () { 
                                 var select_st = ''
@@ -70,9 +70,9 @@ function initCensus(){
                         census.makeFiltersVariableDetail(cobj, metric, 'county_auxiliary_fields')
                         
                         var fil = []
-                        var nodes_counties = document.querySelectorAll('.filter_county')
+                        var nodes_counties = document.querySelectorAll('.filter_county_auxiliary_fields')
                         var i=0
-                        document.querySelectorAll('.filter_main').forEach( el => { 
+                        document.querySelectorAll('.filter_main_auxiliary_fields').forEach( el => { 
                             fil.push(el.value); 
                             nodes_counties[i].value = el.value; 
                             i+=1; 
@@ -92,7 +92,7 @@ function initCensus(){
                         
                         var metricx = options_xaxis.value
                         var fil = []
-                        document.querySelectorAll('.filter_xaxis').forEach( el => { fil.push(el.value) } )
+                        document.querySelectorAll('.filter_xaxis_auxiliary_fields').forEach( el => { fil.push(el.value) } )
                         var variable_queryx=fil.join('|')
                         var vrbs=cobj.census_variables.filter( el => el.global_var == metricx )
                         vrbs=vrbs[0]
@@ -102,7 +102,7 @@ function initCensus(){
                         
                         var metricy = options_yaxis.value
                         var fil = []
-                        document.querySelectorAll('.filter_yaxis').forEach( el => { fil.push(el.value) } )
+                        document.querySelectorAll('.filter_yaxis_auxiliary_fields').forEach( el => { fil.push(el.value) } )
                         var variable_queryy=fil.join('|')
                         var vrbs=cobj.census_variables.filter( el => el.global_var == metricy )
                         vrbs=vrbs[0]
@@ -156,10 +156,11 @@ function initCensus(){
                         
                         var metric = options_county.value
                         var fil = []
-                        document.querySelectorAll('.filter_county').forEach( el => { fil.push(el.value) } )
+                        document.querySelectorAll('.filter_county_auxiliary_fields').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
                         //census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'geochart' ).then( (v) => { } )
                         census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'polygonmap' ).then( (v) => {
+                            document.getElementById('county_plot').style.display=''
                             infol_county.style.display='none'
                         })
                         
@@ -169,11 +170,14 @@ function initCensus(){
                         infol_state.style.display=''
                         var metric = options_main.value
                         var fil = []
-                        document.querySelectorAll('.filter_main').forEach( el => { fil.push(el.value) } )
+                        document.querySelectorAll('.filter_main_auxiliary_fields').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
                         console.log( fil, metric)
-                        census.getMainDemographyData(cobj, fil, metric, 'map_main', callback_handle_state_chosen ).then( (val) => {})
-                        infol_state.style.display='none'
+                        census.getMainDemographyData(cobj, fil, metric, 'map_main', callback_handle_state_chosen ).then( (val) => { 
+                            document.getElementById('main_plot').style.display=''
+                            infol_state.style.display='none'
+                         })
+                        
                     }
                     
                     var nodes = document.querySelectorAll('.metric_filter')
@@ -181,8 +185,9 @@ function initCensus(){
                         n.addEventListener('input', ({ target }) => {
                               const value = target.value
                               const ide = 'options_'+target.id.split('_')[0]
+                              const ide_div = target.id.split('_')[0]+'_auxiliary_fields'
                               if(value.length) {
-                                 census.makeFilterVariableAutocomplete(cobj, value, ide)
+                                 census.makeFilterVariableAutocomplete(cobj, value, ide, ide_div)
                               }
                         })
                     }
