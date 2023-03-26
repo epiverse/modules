@@ -11,6 +11,8 @@
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        
         <style>
             .fields{
                 width: 200px !important; 
@@ -117,7 +119,7 @@
                                         <p id="infol_county" style="display: none" >Loading ...</p>
                                         <div id="county_plot" >
                                             <h4 id="info_county" > Map at the County level: </h4>
-                                            <div id="map_county" style="width: 800px; height: 600px;" ></div>
+                                            <div id="map_county_container" ></div>
                                         </div>
                                     </div>
                                     
@@ -207,6 +209,12 @@
                 
                 
                 <script src="census.js"></script>
+                
+                <script
+                  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHcL7uevM0muUusWOkucO1zY3O5CpS5VE&callback=initMap&libraries=places&v=weekly"
+                  defer
+                ></script>
+                
                 
                 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
                 

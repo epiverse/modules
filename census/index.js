@@ -78,7 +78,8 @@ function initCensus(){
                             i+=1; 
                         } )
                         fil=fil.join('|')
-                        await census.getCountyByStatePlot(cobj, fil, metric, 'map_county')
+                        //await census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container')
+                        await census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'polygonmap')
                         infol_county.style.display='none'
                     }
                     
@@ -157,8 +158,11 @@ function initCensus(){
                         var fil = []
                         document.querySelectorAll('.filter_county').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
-                        census.getCountyByStatePlot(cobj, fil, metric, 'map_county')
-                        infol_county.style.display='none'
+                        //census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'geochart' ).then( (v) => { } )
+                        census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'polygonmap' ).then( (v) => {
+                            infol_county.style.display='none'
+                        })
+                        
                     }
                     
                     getMainPlot = () => {

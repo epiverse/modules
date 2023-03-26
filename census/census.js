@@ -68,9 +68,10 @@ async function Census (year=2021){
     var temp = await fetch(server+'convert_state_in_codes.json')
     object.state_dict = await temp.json()
     
-    var server = (location.href.indexOf('/census')==-1 ) ? location.href.split('#')[0]+'census/' : location.href.split('#')[0]
     var temp = await fetch(server+'counties_geo_info.json')
     object.dict_counties_geo = await temp.json()
+    
+    object.geoCountiesByState = await census.epi.epiverse.loadGeoCounties()
     
     /*temp = await temp.text()
     temp = temp.split('\n')
@@ -531,6 +532,7 @@ census.generateBivariablePlot = function (cobj, table, query, title_x, title_y, 
 * @param {string} variable_query Query filter combination
 * @param {string} metric High level metric to filter
 * @param {string} container Container to draw plot right after data retrieval [Optional]
+* @param {string} typeMap Type of map to render the data about the counties according to the chosen metric (geochart or polygonmap)
 *
 *
 * @returns {array} Data table with data retrieved from Census API
@@ -538,9 +540,9 @@ census.generateBivariablePlot = function (cobj, table, query, title_x, title_y, 
 * @example
 * let v = await Census()
 * v.chosen_state = 'California'
-* let dat = await census.getCountyByStatePlot(v, 'Female|All', 'B01001', 'map_main')
+* let dat = await census.getCountyByStatePlot(v, 'Female|All', 'B01001', 'map_main', 'geochart')
 */
-census.getCountyByStatePlot = async function (cobject, variable_query, metric, container){
+census.getCountyByStatePlot = async function (cobject, variable_query, metric, container, typeMap){
     var treated = []
         
     var vrbs=cobject.census_variables.filter( el => el.global_var == metric )
@@ -553,7 +555,12 @@ census.getCountyByStatePlot = async function (cobject, variable_query, metric, c
         treated = await census.getDataCountyByState(cobject)
         
         if(container!=null && container!='' && treated.length>0){
-            census.generatePlotCounty(cobject, treated, container)
+            if( typeMap=='geochart' ){
+                census.generatePlotCounty(cobject, treated, container)
+            }
+            if( typeMap=='polygonmap' ){
+                census.generatePlotCountyPolygon(cobject, treated, container)
+            }
         }
     }
 }
@@ -710,6 +717,92 @@ census.generatePlotCounty = async function (cobject, table, container){
         alert('There is no data to plot for this filter!')
     }
     
+}
+
+/** 
+* Generate plot in the county scope using gmaps and polygons
+* 
+* @param {Object} cobject Census library object
+* @param {array} table Data table retrieved from the census api
+* @param {string} container COntainer identifier to draw the plot
+*
+* 
+* @example
+* let v = await Census()
+* v.chosen_county_metric=['B01001_026E']
+* let dat = await census.getDataCounty(v)
+* await census.generatePlotCountyPolygon(v, dat, 'map_county_container')
+*/
+census.generatePlotCountyPolygon = async function (cobject, table, container){
+    eval(container).innerHTML=`
+        <div id="epiverse_county_map" style="width: 800px; height: 600px;" ></div>
+        <div id="epiverseCountyStats"> <span id="statsMouseover"></span><br><span id="statsClicked"></span> </div>
+    `
+    
+    let normalize = (val, arr) => { return ( val - Math.min.apply(null, arr))/(Math.max.apply(null, arr) - Math.min.apply(null, arr)) }
+    
+    if(table.length>0){
+        var y = table.map( el => { return isNaN(el['result']) ? 0 : el['result'] } )
+        var normValues={}
+        table.forEach( el => { isNaN(el['result']) ? normValues[el.name] = [0, `${cobject.chosen_county_metric}: ${el.result}`] : normValues[el.name] = [ normalize(el['result'], y), `${cobject.chosen_county_metric}: ${el.result}` ]  } )
+        cobject.countyPolygonData=normValues
+        
+       var info = cobject.geoCountiesByState[cobject.chosen_state]
+       
+       var map = new google.maps.Map( document.getElementById('epiverse_county_map'), {
+         zoom: 8,
+         center: new google.maps.LatLng( info.center[0], info.center[1] ),
+       });
+       
+       var mapPolygons =[]
+       var i =0
+       info['data'].forEach( el => {
+            var ind =-1
+            var val=0
+            var info = ''
+            if( Object.keys(normValues).includes(el.county) ){
+                val = normValues[ el['county'] ][0]
+                ind = i
+                info = normValues[ el['county'] ][1]
+            }
+            var c = census.epi.epiverse.color( val )
+            mapPolygons.push( 
+                new google.maps.Polygon({
+                    paths: el['coordinates'],
+                    strokeColor: c,
+                    strokeOpacity: 0.8,
+                    strokeWeight: 1,
+                    fillColor: c,
+                    fillOpacity: 0.35,
+                    _i_: ind,
+                    _county_: el['county'],
+                    _info_: info
+                })
+            )
+            i+=1
+            //mapPolygons[i].addListener('click', census.polyClick)
+       })
+       for ( var p of mapPolygons){
+            //p.addListener('mouseover', census.polyMouseover(cobject, this) )
+            p.addListener('mouseover', census.polyMouseover )
+            p.setMap(map)
+       }
+    }
+    else{
+        alert('There is no data to plot for this filter!')
+    }
+    
+}
+
+census.polyMouseover=function(){
+    //this.setMap(null)
+    //this.setOptions({'fillColor':'blue'})
+    console.log(this)
+    if(this._i_!=-1){
+        var metric = this._info_
+        var location = this._county_
+        statsMouseover.innerHTML=`<b style="color:blue"> ${location} </b> - Metric ${metric}</li>`
+    }
 }
 
 /** 
@@ -1041,3 +1134,12 @@ census.loadScript= async function(url){
 if(typeof(Plotly)=="undefined"){
 	census.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 }
+if( census.epi==undefined ){
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/export.js` : `https://${location.host}/export.js`
+    import(server).then( (module) => {
+        census.epi = module
+    })
+}
+
+initMap = function() {}
+window.initMap = initMap;
