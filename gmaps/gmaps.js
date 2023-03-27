@@ -42,8 +42,8 @@ console.log('gmaps.js loaded')
 */
 async function Gmaps (latitude, longitude, radius){
     var object = { latitude: latitude, longitude: longitude, radius: radius }
-    object.location = new google.maps.LatLng(latitude, longitude)
-    object.place_categories = { "Leisure": ["amusement_park", "aquarium", "art_gallery", "bowling_alley", "church", "gym", "hindu_temple", "library", "mosque", "movie_theater", "museum", "park", "synagogue"], "HealthCare": ["dentist", "doctor", "drugstore", "hospital", "pharmacy", "physiotherapist", "zoo"], "Security": ["police"], "Education": ["primary_school", "school", "secondary_school", "university"], "Access to Fresh Food": ["supermarket", "restaurant-health"] }
+    //object.location = new google.maps.LatLng(latitude, longitude)
+    object.place_categories = { "Leisure": ["amusement_park", "aquarium", "art_gallery", "bowling_alley", "church", "gym", "hindu_temple", "library", "mosque", "movie_theater", "museum", "park", "synagogue", "zoo"], "HealthCare": ["dentist", "doctor", "drugstore", "hospital", "pharmacy", "physiotherapist"], "Security": ["police"], "Education": ["primary_school", "school", "secondary_school", "university"], "Access to Fresh Food": ["supermarket", "restaurant"] }
     await gmaps.getPlacesData(object)
     
     return object
@@ -64,7 +64,6 @@ let gmaps={}
 * var data = await gmaps.getPlacesData(v)
 */
 gmaps.getPlacesData = async (gobject) => {
-    info1.style.display='none'
 
     var container = document.getElementById("map")
     if(container==null){
@@ -72,6 +71,10 @@ gmaps.getPlacesData = async (gobject) => {
         s.id="map"
         document.body.appendChild(s)
         container = document.getElementById("map")
+    }
+    
+    if(gobject.location==null){
+        gobject.location = new google.maps.LatLng(gobject.latitude, gobject.longitude)
     }
     
     if(gobject.map==null){
@@ -96,6 +99,29 @@ gmaps.getPlacesData = async (gobject) => {
     }
     
     gobject.data_places = []
+    var types = Object.keys(revmap).filter( e => e.split('-').length==1 )
+    console.log(types)
+    var request = {
+        location: gobject.location,
+        radius: ''+gobject.radius,
+        type: types
+    };
+
+    service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.log(results)
+            results.forEach( el => { 
+                var t = el.types
+                for (it of t){
+                    if( types.includes(it) ){
+                        gobject.data_places.push( { "category": revmap[it], "type": it, "place": el } ) 
+                    }
+                }
+            })
+        }
+    });
+    
+    /*
     for (var cat of categories ){
         for (var type of gobject.place_categories[cat] ){
             
@@ -122,8 +148,7 @@ gmaps.getPlacesData = async (gobject) => {
                 }
             });
         }
-    }
-    info1.style.display='block'
+    }*/
     
     return gobject.data_places
 }
@@ -132,15 +157,30 @@ gmaps.getPlacesData = async (gobject) => {
 * Generates summary plot of places by category
 * 
 * @param {Object} gobject Gmaps object library
+* @param {string} container Container identifier to render the plots
 *
 *
 * @example
 * let v = await Gmaps(39.086437,  -77.161263, 5000)
 * var data = await gmaps.plotSummaryCategories(v)
 */
-gmaps.plotSummaryCategories = async (gobject) => {
-    info2.style.display='none'
+gmaps.plotSummaryCategories = async (gobject, container) => {
+    eval(container).style.display='none'
     
+    eval(container).innerHTML = `
+    <div class="col-12" >
+        <div class="col-6" >
+            <h4 id="info_cats" style="display: none"> Places by Categories (click in the bar to see the distribution of places by types): </h4>
+            <div class="col-12"  id="summary_plot_cats"> </div>
+        </div>
+        
+        <div class="col-6" >
+            <h4 id="info_types" style="display: none" > Places by Types <span id='catn' > </span>: </h4>
+            <div class="col-12"  id="topics_plot_types"> </div>
+            <div class="col-12"  id="summary_plot_types"> </div>
+        </div>
+    </div>
+    `
     var bar = document.getElementById('summary_plot_cats');
     
     var x = []
@@ -155,6 +195,8 @@ gmaps.plotSummaryCategories = async (gobject) => {
     }
     
     if( x.length>0 ){
+        eval(container).style.display=''
+        
         var data = []
         var trace = {
           x: x,
@@ -176,13 +218,13 @@ gmaps.plotSummaryCategories = async (gobject) => {
                 }
             }
         };
-
+        
+        info_cats.style.display=''
         Plotly.newPlot('summary_plot_cats', data, layout);
         
         bar.on('plotly_click', function(data){
             gmaps.plotSummaryTypes(gobject, data.points[0].label)
         });
-        info2.style.display='block'
     }
     else{
         alert('No data to plot!')
@@ -201,7 +243,8 @@ gmaps.plotSummaryCategories = async (gobject) => {
 * var data = await gmaps.plotSummaryTypes(v, 'Education')
 */
 gmaps.plotSummaryTypes = async (gobject, category) => {
-    info3.style.display='none'
+    info_types.style.display=''
+    
     var bar = document.getElementById('summary_plot_types');
     
     var x = []
@@ -217,36 +260,48 @@ gmaps.plotSummaryTypes = async (gobject, category) => {
         }
         
         if( x.length>0 ){
-            var data = []
-            var trace = {
-              x: x,
-              y: y,
-              name: 'Places available by category',
-              type: 'bar'
-            }
-            data.push(trace)
-
-            var layout = {
-                xaxis: {
-                    title: {
-                      text: 'Types',
-                    }
-                },
-                yaxis: {
-                    title: {
-                      text: 'Number of Places',
-                    }
+            var htmls='<ul>'
+            for (var type of gobject.place_categories[category] ){
+                var content = gobject.data_places.filter( el => el.type==type ).map(el => { return el.place.name } )
+                if(content.length>0){
+                    content = content.join(', ')
+                    htmls+=`<li> <b>${type}:</b> ${content} </li>`
                 }
-            };
+            }
+            htmls+=`</ul>`
+            topics_plot_types.innerHTML=htmls
+        
+            if(x.length > 2){
+                var data = []
+                var trace = {
+                  x: x,
+                  y: y,
+                  name: 'Places available by category',
+                  type: 'bar'
+                }
+                data.push(trace)
 
-            Plotly.newPlot('summary_plot_types', data, layout);
-            
-            bar.on('plotly_click', function(data){
-                var places = gobject.data_places.filter( el => el.category==category&&el.type==data.points[0].label )
-                console.log(places)
-                //searchShowPlacesTable(data.points[0].label)
-            });
-            info3.style.display='block'
+                var layout = {
+                    xaxis: {
+                        title: {
+                          text: 'Types',
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                          text: 'Number of Places',
+                        }
+                    }
+                };
+
+                Plotly.newPlot('summary_plot_types', data, layout);
+                
+                bar.on('plotly_click', function(data){
+                    var places = gobject.data_places.filter( el => el.category==category&&el.type==data.points[0].label )
+                    console.log(places)
+                    //searchShowPlacesTable(data.points[0].label)
+                });
+            }
         }
         else{
             alert('No data to plot')
@@ -264,7 +319,7 @@ gmaps.plotSummaryTypes = async (gobject, category) => {
 * @param {string} url Library URL.
 * 
 * @example
-* iarc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+* gmaps.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 *
 */
 gmaps.loadScript= async function(url){

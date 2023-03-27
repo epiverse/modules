@@ -7,6 +7,10 @@ var epiverse = {}
  *
  * @namespace epiverse
  * @property {Function} getStateCodeMap - {@link epiverse.getStateCodeMap}
+ * @property {Function} cPdf - {@link epiverse.cPdf}
+ * @property {Function} color - {@link epiverse.color}
+ * @property {Function} loadGeoCounties - {@link epiverse.loadGeoCounties}
+ * @property {Function} loadScript - {@link epiverse.loadScript}
  */
  
  
@@ -141,4 +145,32 @@ epiverse.loadGeoCounties = async function(cobject) {
     return dat
 }
 
-export { epiverse }
+/** 
+* Load a certain dependency library from link
+* 
+*
+* @param {string} url Library URL.
+* 
+* @example
+* epiverse.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+*
+*/
+epiverse.loadScript= async function(url){
+	console.log(`${url} loaded`)
+    async function asyncScript(url){
+        let load = new Promise((resolve,regect)=>{
+            let s = document.createElement('script')
+            s.src=url
+            s.onload=resolve
+            document.head.appendChild(s)
+        })
+        await load
+    }
+    // satisfy dependencies
+    await asyncScript(url)
+}
+
+if(typeof(JSZip)=="undefined"){
+	epiverse.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
+}
+

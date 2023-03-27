@@ -158,8 +158,10 @@ function initCensus(){
                         var fil = []
                         document.querySelectorAll('.filter_county_auxiliary_fields').forEach( el => { fil.push(el.value) } )
                         fil=fil.join('|')
+                        
+                        var callback = (place, sel) => { console.log(place) }
                         //census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'geochart' ).then( (v) => { } )
-                        census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'polygonmap' ).then( (v) => {
+                        census.getCountyByStatePlot(cobj, fil, metric, 'map_county_container', 'polygonmap', callback ).then( (v) => {
                             document.getElementById('county_plot').style.display=''
                             infol_county.style.display='none'
                         })

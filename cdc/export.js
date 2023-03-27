@@ -8,7 +8,6 @@ console.log('cdc.js loaded')
  * @property {Function} Cdc - {@link Cdc}
  *
  * @namespace cdc
-  * @property {Function} getStateCodeMap - {@link cdc.getStateCodeMap}
  * @property {Function} getDatasets - {@link cdc.getDatasets}
  * @property {Function} makeFillSelectDatasets - {@link cdc.makeFillSelectDatasets}
  * @property {Function} getDistinctValues - {@link cdc.getDistinctValues}
@@ -28,7 +27,6 @@ console.log('cdc.js loaded')
  * @property {Function} generatePlotErrorBarComparisonVariable - {@link cdc.generatePlotErrorBarComparisonVariable}
  * @property {Function} generatePlotState - {@link cdc.generatePlotState}
  * @property {Function} generatePlotByCoordinate - {@link cdc.generatePlotByCoordinate}
- * @property {Function} loadScript - {@link cdc.loadScript}
  */
  
  
@@ -45,6 +43,7 @@ console.log('cdc.js loaded')
  * @attribute {Object} state_dict_reverse States dictionary to map state abbreviated code to name.
  */
 
+let cdc = {}
 
 /** 
 * Initializes the Cdc Library object
@@ -59,45 +58,22 @@ console.log('cdc.js loaded')
 */
 async function Cdc (datasetId){
     var object = { datasetId: datasetId, chosen_location: ''}
-    //var dt = await cdc.getDatasets()
-    //await cdc.getIndicatorValues(object)
-    var temp = await Promise.all( [ cdc.getDatasets(object), cdc.getIndicatorValues(object), cdc.getStateCodeMap(object) ] )
-    var state_dict_rev = {}
-    Object.keys(object.state_dict).forEach( el => { state_dict_rev[ object.state_dict[el] ] = el } )
-    object.state_dict_reverse = state_dict_rev
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/export.js` : `https://${location.host}/export.js`
+    import(server).then( async (module) => {
+        cdc.epi=module
+        await cdc.epi.epiverse.getStateCodeMap(object)
+    })
     
-    /*
-    var dt = temp[0]
-    object.datasets = dt
-    object.active_dataset = dt.filter( el => el.resourceId==datasetId )[0]
-    */
+    var temp = await Promise.all( [ cdc.getDatasets(object), cdc.getIndicatorValues(object) ] )
     
     return object
+    
 }
 
-let cdc = {}
 
 // https://chronicdata.cdc.gov/resource/pttf-ck53.json?$select=distinct%20Question,%20Topic,%20Response&$order=Question&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO
 
 // https://chronicdata.cdc.gov/resource/hn4x-zwk7.json?$select=distinct%20LocationDesc,YearStart,%20question,%20StratificationCategory1,%20Stratification1,%20Data_Value&$where=LocationDesc=%27Alaska%27%20and%20StratificationCategory1=%27Total%27&$order=YearStart&$$app_token=vL7rlKzXR5M6c2o98kOuMmbCO
-
-
-/** 
-* Load states dictionary from name to code
-* 
-* 
-* @param {Object} cobject Cdc library object.
-* 
-* @example
-* await cdc.getDatasets()
-*/
-cdc.getStateCodeMap = async function (cobject){
-    var server = (location.href.indexOf('/cdc')==-1 ) ? location.href.split('#')[0]+'cdc/' : location.href.split('#')[0]
-    var temp = await fetch(server+'convert_state_in_codes.json')
-    cobject.state_dict = await temp.json()
-    
-    return cobject.state_dict
-}
 
 /** 
 * Load datasets
@@ -1356,5 +1332,13 @@ cdc.loadScript = async function(url){
 if(typeof(Plotly)=="undefined"){
 	cdc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 }
+
+if( cdc.epi==undefined ){
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/export.js` : `https://${location.host}/export.js`
+    import(server).then( (module) => {
+        cdc.epi = module
+    })
+}
+
 
 export { Cdc, cdc }

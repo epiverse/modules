@@ -79,11 +79,7 @@
                                     <h4 id="info1" style="display: none" > Map of the chosen location: </h4>
                                     <div id="map" style="width:500px;height:500px;" ></div>
                                     
-                                    <h4 id="info2" style="display: none"> Places by Categories (click in the bar to see the distribution of places by types): </h4>
-                                    <div class="col-12"  id="summary_plot_cats"> </div>
-                                    
-                                    <h4 id="info3" style="display: none" > Places by Types <span id='catn' > </span>: </h4>
-                                    <div class="col-12"  id="summary_plot_types"> </div>
+                                    <div id="container_plots"> </div>
                                     
                                 </div>
                             </div>
@@ -108,6 +104,7 @@
         
                 <script>
                     gendoc.buildDocumentation( location.href.split('#')[0]+'gmaps.js', 'documentation-content', 'https://github.com/epiverse/modules/blob/main/gmaps/gmaps.js')
+                    var cobj = null
                 </script>
             
                 <script src="index.js"></script>

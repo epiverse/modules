@@ -14,14 +14,17 @@ console.log('census.js loaded')
  * @property {Function} getDataCountyByState - {@link census.getDataCountyByState}
  * @property {Function} getDataCountyAllStates - {@link census.getDataCountyAllStates}
  * @property {Function} getDataSubdivisionByStateAndCounty - {@link census.getDataSubdivisionByStateAndCounty}
+ * @property {Function} generateBivariablePlot - {@link census.generateBivariablePlot}
  * @property {Function} getCountyByStatePlot - {@link census.getCountyByStatePlot}
  * @property {Function} generatePlotState - {@link census.generatePlotState}
  * @property {Function} generatePlotCounty - {@link census.generatePlotCounty}
- * @property {Function} generateBivariablePlot - {@link census.generateBivariablePlot}
+ * @property {Function} generatePlotCountyPolygon - {@link census.generatePlotCountyPolygon}
+ * @property {Function} polyMouseover - {@link census.polyMouseover}
  * @property {Function} getStates - {@link census.getStates}
  * @property {Function} getVariablesProcessed - {@link census.getVariablesProcessed}
  * @property {Function} getVariables - {@link census.getVariables}
  * @property {Function} getVariableDetails - {@link census.getVariableDetails}
+ * @property {Function} makeFillYearSelect - {@link census.makeFillYearSelect}
  * @property {Function} makeFillVariableSelect - {@link census.makeFillVariableSelect}
  * @property {Function} makeFilterVariableAutocomplete - {@link census.makeFilterVariableAutocomplete}
  * @property {Function} makeFiltersVariableDetail - {@link census.makeFiltersVariableDetail}
@@ -534,6 +537,7 @@ census.generateBivariablePlot = function (cobj, table, query, title_x, title_y, 
 * @param {string} metric High level metric to filter
 * @param {string} container Container to draw plot right after data retrieval [Optional]
 * @param {string} typeMap Type of map to render the data about the counties according to the chosen metric (geochart or polygonmap)
+* @param {Function} callback_handle_place Function to handle clicked chosen place
 *
 *
 * @returns {array} Data table with data retrieved from Census API
@@ -541,9 +545,10 @@ census.generateBivariablePlot = function (cobj, table, query, title_x, title_y, 
 * @example
 * let v = await Census()
 * v.chosen_state = 'California'
-* let dat = await census.getCountyByStatePlot(v, 'Female|All', 'B01001', 'map_main', 'geochart')
+* var callback = (place_result) => { console.log(place_result); }
+* let dat = await census.getCountyByStatePlot(v, 'Female|All', 'B01001', 'map_main', 'geochart', callback)
 */
-census.getCountyByStatePlot = async function (cobject, variable_query, metric, container, typeMap){
+census.getCountyByStatePlot = async function (cobject, variable_query, metric, container, typeMap, callback_handle_place){
     var treated = []
         
     var vrbs=cobject.census_variables.filter( el => el.global_var == metric )
@@ -557,10 +562,10 @@ census.getCountyByStatePlot = async function (cobject, variable_query, metric, c
         
         if(container!=null && container!='' && treated.length>0){
             if( typeMap=='geochart' ){
-                census.generatePlotCounty(cobject, treated, container)
+                census.generatePlotCounty(cobject, treated, container, callback_handle_place)
             }
             if( typeMap=='polygonmap' ){
-                census.generatePlotCountyPolygon(cobject, treated, container)
+                census.generatePlotCountyPolygon(cobject, treated, container, callback_handle_place)
             }
         }
     }
@@ -648,15 +653,17 @@ census.generatePlotState = async function (cobject, table, container, callback_h
 * @param {Object} cobject Census library object
 * @param {array} table Data table retrieved from the census api
 * @param {string} container COntainer identifier to draw the plot
+* @param {Function} callback_handle_place Function to handle clicked chosen place
 *
 * 
 * @example
 * let v = await Census()
 * v.chosen_county_metric=['B01001_026E']
 * let dat = await census.getDataCounty(v)
-* await census.generatePlotCounty(v, dat, 'map_county')
+* var callback = (place_result) => { console.log(place_result); }
+* await census.generatePlotCounty(v, dat, 'map_county', callback)
 */
-census.generatePlotCounty = async function (cobject, table, container){
+census.generatePlotCounty = async function (cobject, table, container, callback_handle_place){
     var map = document.getElementById(container)
     
     if(table.length>0){
@@ -698,7 +705,9 @@ census.generatePlotCounty = async function (cobject, table, container){
                   var selection = chart.getSelection();
                   if (selection.length > 0) {
                     cobject.chosen_county = data.getValue( selection[0].row, 3).split('<br />')[0]
-                    console.log( data.getValue( selection[0].row, 3).split('<br />')[0] );
+                    if(callback_handle_place != null){
+                        callback_handle_place(data, selection)
+                    }
                     //window.open('http://' + data.getValue(selection[0].row, 2), '_blank');
                   }
                 });
@@ -722,17 +731,19 @@ census.generatePlotCounty = async function (cobject, table, container){
 * @param {Object} cobject Census library object
 * @param {array} table Data table retrieved from the census api
 * @param {string} container COntainer identifier to draw the plot
+* @param {Function} callback_handle_place Function to handle clicked chosen place
 *
 * 
 * @example
 * let v = await Census()
 * v.chosen_county_metric=['B01001_026E']
 * let dat = await census.getDataCounty(v)
-* await census.generatePlotCountyPolygon(v, dat, 'map_county_container')
+* var callback = (place_result) => { console.log(place_result); }
+* await census.generatePlotCountyPolygon(v, dat, 'map_county_container', callback)
 */
-census.generatePlotCountyPolygon = async function (cobject, table, container){
+census.generatePlotCountyPolygon = async function (cobject, table, container, callback_handle_place){
     eval(container).innerHTML=`
-        <div id="epiverse_county_map" style="width: 800px; height: 600px; display: inline-block; float: left; margin-right: 15px" ></div>
+        <div id="epiverse_county_map" style="width: 800px; height: 600px; display: inline-block;" ></div>
         <div id="epiverseCountyStats" style="display: inline-block;" > <span id="statsMouseover"></span><br><span id="statsClicked"></span> </div>
     `
     
@@ -797,16 +808,25 @@ census.generatePlotCountyPolygon = async function (cobject, table, container){
                 geocoder.geocode( { location: event.latLng } )
                 .then((result) => {
                   const { results } = result;
-                    var metric = ''
-                    var msg = `<b style="color:blue"> ${results[0].formatted_address} </b> `
-                    
-                    infoWindow = new google.maps.InfoWindow({
-                      position: event.latLng,
-                    });
-                    infoWindow.setContent(
-                      msg
-                    );
-                    infoWindow.open(map);
+                    if( results.length > 0 ){
+                        console.log(results)
+                        var obj = results[0]
+                        obj.point = event.latLng.toJSON()
+                        if(callback_handle_place != null){
+                            callback_handle_place(obj, null)
+                        }
+                        
+                        var metric = ''
+                        var msg = `<b style="color:blue"> ${results[0].formatted_address} </b> `
+                        
+                        infoWindow = new google.maps.InfoWindow({
+                          position: event.latLng,
+                        });
+                        infoWindow.setContent(
+                          msg
+                        );
+                        infoWindow.open(map);
+                    }
                 })
                 
                 /*
@@ -830,7 +850,13 @@ census.generatePlotCountyPolygon = async function (cobject, table, container){
     
 }
 
-census.polyMouseover=function(){
+/** 
+* Callback function for a geo polygon in google maps
+* 
+*
+* 
+*/
+census.polyMouseover = function(){
     if(this._i_!=-1){
         var metric = this._info_
         var location = this._county_
@@ -1147,7 +1173,7 @@ census.makeFiltersVariableDetail = async function (cobject, id_metric, container
 * census.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 *
 */
-census.loadScript= async function(url){
+census.loadScript = async function(url){
 	console.log(`${url} loaded`)
     async function asyncScript(url){
         let load = new Promise((resolve,regect)=>{

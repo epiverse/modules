@@ -55,7 +55,7 @@
                         var local=''
                         if(selection==null){
                             console.log( data.points[0])
-                            local = data.points[0].text
+                            local = data.points[0].text.split(' - ')[0]
                         }
                         else{
                             console.log( data.getValue( selection[0].row, 3) );
