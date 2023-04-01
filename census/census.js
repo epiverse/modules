@@ -229,21 +229,26 @@ census.getMainDemographyData = async function(cobject, variable_query, metric, c
 */
 census.getDataRegion = async function (cobject){
     var query = cobject.chosen_region_metric
-    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=region:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    content=await res.json()
-    content=content.slice(1)
     var treated = []
-    content.forEach( el => {
-        var final_index = el.length-1
-        var obj = {'id': el[final_index], 'name': el[0], 'result': parseInt(el[1]) }
-        var temp = el.slice(1, el.length-1)
-        var i=0
-        for (var c of query){
-            obj[c]=temp[i]
-            i+=1
-        }
-        treated.push( obj )
-    })
+    try{
+        var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=region:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        content=await res.json()
+        content=content.slice(1)
+        content.forEach( el => {
+            var final_index = el.length-1
+            var obj = {'id': el[final_index], 'name': el[0], 'result': parseInt(el[1]) }
+            var temp = el.slice(1, el.length-1)
+            var i=0
+            for (var c of query){
+                obj[c]=temp[i]
+                i+=1
+            }
+            treated.push( obj )
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
@@ -263,23 +268,28 @@ census.getDataRegion = async function (cobject){
 */
 census.getDataState = async function (cobject){
     var query = cobject.chosen_state_metric
-    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var content=await res.json()
-    content=content.slice(1)
     var treated = []
-    content.forEach( el => {
-        var final_index = el.length-1
-        var obj = { 'id': cobject.state_dict[ el[0] ], 'number_code': el[final_index], 'name': el[0], 'result': parseInt(el[1]) } 
-        if( ! isNaN(obj.result) ){
-            var temp = el.slice(1, el.length-1)
-            var i=0
-            for (var c of query){
-                obj[c]=temp[i]
-                i+=1
+    try{
+        var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=state:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        var content=await res.json()
+        content=content.slice(1)
+        content.forEach( el => {
+            var final_index = el.length-1
+            var obj = { 'id': cobject.state_dict[ el[0] ], 'number_code': el[final_index], 'name': el[0], 'result': parseInt(el[1]) } 
+            if( ! isNaN(obj.result) ){
+                var temp = el.slice(1, el.length-1)
+                var i=0
+                for (var c of query){
+                    obj[c]=temp[i]
+                    i+=1
+                }
+                treated.push( obj )
             }
-            treated.push( obj )
-        }
-    })
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
@@ -299,23 +309,28 @@ census.getDataState = async function (cobject){
 */
 census.getDataCounty = async function (cobject){
     var query = cobject.chosen_county_metric
-    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var content=await res.json()
-    content=content.slice(1)
     var treated = []
-    content.forEach( el => {
-        var final_index = el.length-1
-        var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } 
-        if( ! isNaN(obj.result) ){
-            var temp = el.slice(1, el.length-2)
-            var i=0
-            for (var c of query){
-                obj[c]=temp[i]
-                i+=1
+    try{
+        var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        var content=await res.json()
+        content=content.slice(1)
+        content.forEach( el => {
+            var final_index = el.length-1
+            var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } 
+            if( ! isNaN(obj.result) ){
+                var temp = el.slice(1, el.length-2)
+                var i=0
+                for (var c of query){
+                    obj[c]=temp[i]
+                    i+=1
+                }
+                treated.push( obj )
             }
-            treated.push( obj )
-        }
-    })
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
@@ -338,23 +353,28 @@ census.getDataCountyByState = async function (cobject){
     var query = cobject.chosen_county_metric
     var state = cobject.chosen_state
     var state_id = cobject.states.filter(el => el.name==state )[0].id
-    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${state_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var content=await res.json()
-    content=content.slice(1)
     var treated = []
-    content.forEach( el => {
-        var final_index = el.length-1
-        var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } 
-        if( ! isNaN(obj.result) ){
-            var temp = el.slice(1, el.length-2)
-            var i=0
-            for (var c of query){
-                obj[c]=temp[i]
-                i+=1
+    try{
+        var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${state_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        var content=await res.json()
+        content=content.slice(1)
+        content.forEach( el => {
+            var final_index = el.length-1
+            var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } 
+            if( ! isNaN(obj.result) ){
+                var temp = el.slice(1, el.length-2)
+                var i=0
+                for (var c of query){
+                    obj[c]=temp[i]
+                    i+=1
+                }
+                treated.push( obj )
             }
-            treated.push( obj )
-        }
-    })
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
@@ -374,45 +394,50 @@ census.getDataCountyByState = async function (cobject){
 */
 census.getDataCountyAllStates = async function (cobject){
     var query = cobject.chosen_county_metric
-    
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-    var i=0
-    var info=[]
-    var rate=100
-    var table = cobject.states
-    while (i<table.length) {
-          var end = ((i+rate)<=table.length) ? i+rate : table.length
-          var temp = table.slice(i, end)
-          info = info.concat( await Promise.all( temp.map( async tab => {
-              var url = tab.link_details
-              var enrich = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${tab.id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-              enrich = await enrich.json()
-              enrich = enrich.slice(1)
-              await sleep(300)
-              
-              return enrich
-          } )) )
-          
-          i+=rate
-          if(i>=table.length){
-              break
-          }
-    }
-    
     var treated = []
-    info.forEach( ele => {
-        ele.forEach( el => {
-        var final_index = el.length-1
-            var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) }
-            var temp = el.slice(1, el.length-2)
-            var i=0
-            for (var c of query){
-                obj[c]=temp[i]
-                i+=1
-            }
-            treated.push( obj )
-        } )
-    })
+    try{
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        var i=0
+        var info=[]
+        var rate=100
+        var table = cobject.states
+        while (i<table.length) {
+              var end = ((i+rate)<=table.length) ? i+rate : table.length
+              var temp = table.slice(i, end)
+              info = info.concat( await Promise.all( temp.map( async tab => {
+                  var url = tab.link_details
+                  var enrich = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&in=state:${tab.id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+                  enrich = await enrich.json()
+                  enrich = enrich.slice(1)
+                  await sleep(300)
+                  
+                  return enrich
+              } )) )
+              
+              i+=rate
+              if(i>=table.length){
+                  break
+              }
+        }
+        
+        var treated = []
+        info.forEach( ele => {
+            ele.forEach( el => {
+            var final_index = el.length-1
+                var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) }
+                var temp = el.slice(1, el.length-2)
+                var i=0
+                for (var c of query){
+                    obj[c]=temp[i]
+                    i+=1
+                }
+                treated.push( obj )
+            } )
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
@@ -436,26 +461,32 @@ census.getDataSubdivisionByStateAndCounty = async function (cobject){
     var query = cobject.chosen_subdivision_metric
     var state = cobject.chosen_state
     var county = cobject.chosen_county
-    var state_id = cobject.states.filter(el => el.name==state )[0].id
-    var county_id = cobject.dict_counties_geo[state].filter(el => el.county==county )[0].code
-    console.log(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
-    var content=await res.json()
-    content=content.slice(1)
     var treated = []
-    content.forEach( el => {
-        var final_index = el.length-1
-        var obj = { 'id': el[final_index], 'name': el[0], 'result': parseInt(el[1]) } 
-        if( ! isNaN(obj.result) ){
-            var temp = el.slice(1, el.length-3)
-            var i=0
-            for (var c of query){
-                obj[c]=temp[i]
-                i+=1
+    try{    
+        var state_id = cobject.states.filter(el => el.name==state )[0].id
+        var county_id = cobject.dict_counties_geo[state].filter(el => el.county==county )[0].code
+        console.log(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county%20subdivision:*&in=state:${state_id}&in=county:${county_id}&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+        var content=await res.json()
+        content=content.slice(1)
+        var treated = []
+        content.forEach( el => {
+            var final_index = el.length-1
+            var obj = { 'id': el[final_index], 'name': el[0], 'result': parseInt(el[1]) } 
+            if( ! isNaN(obj.result) ){
+                var temp = el.slice(1, el.length-3)
+                var i=0
+                for (var c of query){
+                    obj[c]=temp[i]
+                    i+=1
+                }
+                treated.push( obj )
             }
-            treated.push( obj )
-        }
-    })
+        })
+    }
+    catch(err) {
+        console.log('Invalid request, variable do not exist in the given year')
+    }
     
     return treated
 }
