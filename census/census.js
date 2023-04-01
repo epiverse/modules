@@ -285,6 +285,42 @@ census.getDataState = async function (cobject){
 }
 
 /** 
+* Get and treat data from api census level county
+* 
+* @param {Object} cobject Census library object
+*
+* 
+* @returns {array} Data table with data retrieved from Census API
+* 
+* @example
+* let v = await Census()
+* v.chosen_county_metric=['B01001_026E']
+* let dat = await census.getDataCounty(v)
+*/
+census.getDataCounty = async function (cobject){
+    var query = cobject.chosen_county_metric
+    var res = await fetch(`https://api.census.gov/data/${cobject.year}/acs/acs1?get=NAME,${query.join(',')}&for=county:*&key=46df0956f737ca4c3911fdf48b8e3dc3133d32fc`)
+    var content=await res.json()
+    content=content.slice(1)
+    var treated = []
+    content.forEach( el => {
+        var final_index = el.length-1
+        var obj = { 'id': el[final_index], 'name': el[0].split(', ')[0], 'name_state': el[0].split(', ')[1], 'id_state': cobject.state_dict[ el[0].split(', ')[1] ], 'result': parseInt(el[1]) } 
+        if( ! isNaN(obj.result) ){
+            var temp = el.slice(1, el.length-2)
+            var i=0
+            for (var c of query){
+                obj[c]=temp[i]
+                i+=1
+            }
+            treated.push( obj )
+        }
+    })
+    
+    return treated
+}
+
+/** 
 * Get and treat data from api census level County by State
 * 
 * @param {Object} cobject Census library object

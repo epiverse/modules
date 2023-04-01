@@ -13,12 +13,279 @@ var epiverse = {}
  * @property {Function} loadScript - {@link epiverse.loadScript}
  */
  
+ /**
+ *
+ *
+ * @object CensusCorrelation
+ * @attribute {Object} chosen_metrics_description Object containing the variable identifiers from census as keys and the values is an array with the following information: metric name, filter values
+ */
+
+
+/** 
+* Initializes the Census Correlation Analysis object
+* 
+*
+* @param {Object} chosen_metrics_description Object containing the variable identifiers from census as keys and the values is an array with the following information: metric name, filter values
+*
+* @returns {Object} Census Correlation Analysis object.
+* 
+* @example
+* let v = epiverse.CensusCorrelation({})
+*/
+epiverse.CensusCorrelation = function (chosen_metrics_description={}){
+    var object = { chosen_metrics_description: chosen_metrics_description }
+    
+    return object
+}
+
+/** 
+* Build the correlation matrix
+* 
+*
+* @param {Object} corrAnalysisObj Census Correlation Analysis object
+* @param {Object} censusObj Census Correlation Library object
+* @param {string} scope Scope (state or county)
+*
+* @returns {Object} Correlation Matrix
+* 
+* @example
+* let corr = epiverse.CensusCorrelation({ "B01001_026E-2021": ["2021","B01001_026E","SEX BY AGE", "Female|All"], })
+* let vcensus = await Census()
+* var corrMatrix = epiverse.vizTableInputCorrelation(corr, vcensus, state)
+*/
+epiverse.calculateCorrelation = async (corrAnalysis, censusObj, scope) => {
+    
+    var keys = Object.keys(corrAnalysis.chosen_metrics_description)
+    var input = {}
+    for (var k of keys){
+        var year = corrAnalysis.chosen_metrics_description[k][0]
+        var variable = corrAnalysis.chosen_metrics_description[k][1]
+        if ( ! Object.keys(input).includes(year) ){
+            input[year] = []
+        }
+        input[year].push(variable)
+    }
+    
+    var years = Object.keys(input)
+    
+    var ids = {}
+    var info = []
+    if(scope=='state'){
+        info = await Promise.all( years.map( async year => { 
+            var temp = JSON.parse( JSON.stringify( censusObj ) )
+            temp.year = year
+            temp.chosen_state_metric = input[year]
+            var table = await census.getDataState(temp)
+            table = table.filter(e => e.id!=undefined)
+            ids[year] = table.map( el => { return el.id } )
+            return table
+        } ) )
+        
+    }
+    if(scope=='county'){
+        info = await Promise.all( years.map( async year => { 
+            var temp = JSON.parse( JSON.stringify( censusObj ) )
+            temp.year = year
+            temp.chosen_county_metric = input[year]
+            var table = await census.getDataCounty(temp)
+            table = table.filter(e => e.id!=undefined)
+            ids[year] = table.map( el => { return el.id } )
+            return table
+        } ) )
+    }
+    console.log(info)
+    
+    var sets = []
+    for (var y of years){
+        sets.push( new Set( ids[y] ) )
+    }
+    var intersection = sets.reduce( (a, b) => new Set( [...a].filter(Set.prototype.has, b) ) )
+    intersection = [...intersection]
+    
+    console.log(intersection)
+    
+    var values = {}
+    var i = 0
+    for (var y of years){
+        for ( var v of input[y]){
+            values[ v+'-'+y ] = info[i].map(el => {
+                var vnumber=parseInt(el[v])
+                if( intersection.includes(el['id']) && !isNaN(vnumber)){
+                    return { 'id': el['id'], 'value': vnumber }
+                }
+            })
+        }
+        i+=1
+    }
+    
+    console.log(values)
+    
+    var corr_matrix = {}
+    keys = Object.keys(values)
+    for (var k of keys){
+        corr_matrix[k]={}
+        for (var v of keys){
+            /*var vars = {}
+            vars[k]='metric'
+            vars[v]='metric'
+            
+            var measures = []
+            values[k].forEach(e => {
+                var v2 = values[v].filter(el => el.id==e.id)[0]
+                var temp = {}
+                temp[k]=e.value
+                temp[v]=v2.value
+                measures.push( temp )
+            })
+            var st = new Statistics(measures, vars);
+            corr_matrix[k][v] = st.correlationCoefficient(k, v)['correlationCoefficient']
+            */
+            var seq1 = []
+            var seq2 = []
+            values[k].forEach(e => {
+                var v2 = values[v].filter(el => el.id==e.id)[0]
+                seq1.push(e.value)
+                seq2.push(v2.value)
+            })
+            corr_matrix[k][v] = jStat.corrcoeff( seq1, seq2 )
+        }
+    }
+    
+    console.log(corr_matrix)
+    corrAnalysis.corrMatrix = corr_matrix
+    
+    return corr_matrix
+}
+
+/** 
+* Plot the correlation matrix
+* 
+*
+* @param {Object} corrAnalysisObj Census Correlation Analysis object
+* @param {string} container Container identifier to plot the heatmap
+*
+* 
+* @example
+* let corr = epiverse.CensusCorrelation({ "B01001_026E-2021": ["2021","B01001_026E","SEX BY AGE", "Female|All"], })
+* let vcensus = await Census()
+* var corrMatrix = epiverse.vizTableInputCorrelation(corr, vcensus, state)
+* epiverse.vizTableInputCorrelation(corr, vcensus, state)
+* epiverse.plotCorrelationMatrix(corr, 'results_corr')
+*/
+epiverse.plotCorrelationMatrix = async (corrAnalysis, container) => {
+    if( corrAnalysis.corrMatrix==null || corrAnalysis.corrMatrix==undefined){
+        alert('You must calculate the correlation matrix first.')
+    }
+    else{
+        var x = Object.keys(corrAnalysis.corrMatrix)
+        var z = []
+        for (var k of x){
+            var aux = []
+            for (var v of x){
+                aux.push( corrAnalysis.corrMatrix[k][v] )
+            }
+            z.push(aux)
+        }
+        
+        var data = [
+          {
+            z: z,
+            x: x,
+            y: x,
+            type: 'heatmap',
+            hoverongaps: false
+          }
+        ];
+
+        Plotly.newPlot(container, data);
+    } 
+}
+
+/** 
+* Build the table to inform the user the chosne metrics for correlation
+* 
+*
+* @param {Object} corrAnalysisObj Census Correlation Analysis object
+* @param {string} container Container identifier
+*
+* 
+* @example
+* let v = epiverse.CensusCorrelation({})
+* epiverse.vizTableInputCorrelation(v, 'table_variables_chosen')
+*/
+epiverse.vizTableInputCorrelation = function (corrAnalysisObj, container){
+    var keys = Object.keys(corrAnalysisObj.chosen_metrics_description)
+    
+    if(keys.length>0){
+        var cols=['Year', 'Variable Identifier', 'Metric name', 'Filter values', 'Action']
+        var head = ''
+        for(var c of cols){
+            head+=`<th> ${c} </th>`
+        }
+        
+        var aux=''
+        for (var k of keys){
+            aux += '<tr>'
+            //var cols = [k].concat( corrAnalysisObj.chosen_metrics_description[k] )
+            var cols = corrAnalysisObj.chosen_metrics_description[k] 
+            for(var c of cols){
+                aux+=`<td> ${c} </td>`
+            }
+            aux+=`<td> <button type="button" class="btn btn-danger btn-sm" onClick="epiverse.vizRemoveInputCorrelation(corrAnalysis, '${k}', '${container}' )" > Remove </button> </td>`
+            aux+='</tr>'
+        }
+        
+        var table = `
+            <table class="table table-striped mt-3" > 
+                <thead id="tableHeader" > 
+                    <tr>
+                        ${head}
+                    </tr>
+                </thead>
+                
+                <tbody id="tableBody" > 
+                    ${aux}
+                </tbody>
+            </table>
+        `;
+        eval(container).innerHTML=table
+    }
+    else{
+        console.log('Error: There are no chosen metrics to build the table')
+    }
+}
+
+/** 
+* Remove variable from input correlation
+* 
+*
+* @param {Object} corrAnalysisObj Census Correlation Analysis object
+* @param {string} variable Variable identifier
+* @param {string} container Container identifier
+*
+* 
+* @example
+* let v = epiverse.CensusCorrelation({'B01001_001E': ['SEX BY AGE','All|All'] })
+* epiverse.vizTableInputCorrelation(v, 'B01001_001E', 'table_variables_chosen')
+*/
+epiverse.vizRemoveInputCorrelation = function (corrAnalysisObj, variable, container){
+    var keys = Object.keys(corrAnalysisObj.chosen_metrics_description)
+    if(keys.includes(variable)){
+        delete corrAnalysisObj.chosen_metrics_description[variable]
+        epiverse.vizTableInputCorrelation(corrAnalysisObj, container)
+    }
+    else{
+        console.log('This key does not exist in the chosen variables from object')
+    }
+} 
  
 /** 
 * Load states dictionary from name to code
 * 
 * 
 * @param {Object} cobject Module library object [Optional]
+* 
+* @returns {Object} Object containing the sates map forom abbreviation to name
 * 
 * @example
 * await epiverse.getStateCodeMap()
@@ -47,6 +314,8 @@ epiverse.getStateCodeMap = async function (cobject){
 * @param {number} u Value for the green component.
 * @param {number} s Value for the blue component.
 * 
+* @returns {number} Color scale from red to blue
+* 
 * @example
 * await epiverse.cPdf(0.2, 255, 35)
 */
@@ -60,7 +329,9 @@ epiverse.cPdf =function(x,u,s){
 * Map normalized context value to a rgb color
 * 
 * 
-* @param {number} x Value for the red component.
+* @param {number} val Nomralized value from the data to be mapped to a rgb color
+* 
+* @returns {string} rgb color
 * 
 * @example
 * await epiverse.color(0.2)
@@ -81,7 +352,9 @@ epiverse.color =function(val){
 * Map normalized context value to a rgb color
 * 
 * 
-* @param {number} x Value for the red component.
+* @param {number} cobject Census library object
+* 
+* @returns {Object} Object conntaining the polygons of the counties grouped by state
 * 
 * @example
 * await epiverse.loadGeoCounties(0.2)
@@ -173,4 +446,9 @@ epiverse.loadScript= async function(url){
 if(typeof(JSZip)=="undefined"){
 	epiverse.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
 }
-
+if(typeof(jStat)=="undefined"){
+    epiverse.loadScript('https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js')
+}
+if(typeof(Plotly)=="undefined"){
+	epiverse.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+}
