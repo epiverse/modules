@@ -278,6 +278,83 @@ epiverse.vizRemoveInputCorrelation = function (corrAnalysisObj, variable, contai
         console.log('This key does not exist in the chosen variables from object')
     }
 } 
+
+/** 
+* Get natural disasters data by state
+* 
+*
+* @returns {Object} Natural disasters by state
+* 
+* @example
+* let v = epiverse.CensusCorrelation({})
+*/
+epiverse.getDataNaturalDisastersByState = async function ( ){
+    var a=await fetch('https://www.fema.gov/api/open/v1/FemaWebDisasterDeclarations')
+    var dat = await a.json()
+    dat = dat['FemaWebDisasterDeclarations']
+    
+    var calcDiffDays = (d1, d2) => {
+        d1=new Date(d1)
+        d2=new Date(d2)
+        return (d2-d1)/(24*3600*1000)
+    }
+    
+    var treated = {}
+    dat.forEach( el => {
+        var type = el['declarationType']
+        var name = el['disasterName']
+        var begin = el['incidentBeginDate']
+        var end = (el['incidentEndDate']==null) ? el['incidentBeginDate'] : el['incidentEndDate']
+        var duration = (end==null) ? 0 : calcDiffDays(begin, end)
+        var state = el['stateName']
+        
+        if( ! Object.keys(treated).includes(state) ){
+            treated[state] = []
+        }
+        treated[state].push( { 'type': type, 'name': name, 'begin': begin, 'end': end, 'duration': duration} )
+    })
+    
+    return treated
+}
+
+/** 
+* Get cancer incidence data by state
+* 
+*
+* @returns {Object} Cancer incidence by state
+* 
+* @example
+* let v = epiverse.getDataCancerIncidenceByState({})
+*/
+epiverse.getDataCancerIncidenceByState = async function ( ){
+    var years = []
+    for (var i=2009; i<=2019; i++){
+        years.push(i)
+    }
+    
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/` : `https://${location.host}/`
+    var info = {}
+    await Promise.all( years.map( async (y) => {
+        var a=await fetch(`${server}/wonder_seer/${y}_incidence.txt`)
+        var dat = await a.text()
+        dat = dat.split('\n').slice(1).map( e => { return e.split('\t').slice(1) } )
+        dat.forEach(el => {
+            var cancer_site = el[0]
+            var state = el[2]
+            var count = el[el.length-3]
+            var population = el[el.length-2]
+            var age_adjusted_rate = el[el.length-1]
+            if( ! Object.keys(info).includes(state) ){
+                info[state] = []
+            }
+            info[state].push( { 'cancer_site': cancer_site, 'year': y, 'count': count, 'population': population, 'age_adjusted_rate': age_adjusted_rate } )
+        })
+        
+        return dat.length
+    } ) )
+    
+    return info
+}
  
 /** 
 * Load states dictionary from name to code
