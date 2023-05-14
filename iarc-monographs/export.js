@@ -1,13 +1,13 @@
 console.log('IarcGpt loaded')
 
-/*  Axiliary functions for waiting next call (sleep) and statistical/math computation shorcuts (min, max, mean, sum) */
+/*  Axiliary functions for waiting next call (sleep), parse iterators (runIteratorUntilDone) and statistical/math computation shorcuts (min, max, mean, sum) */
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const sum = (arr) => arr.reduce( (a,b) => a+b )
 const max = (arr) => arr.reduce( (a,b) => { if(a > b) { return a; } else{ return b } } )
 const min = (arr) => arr.reduce( (a,b) => { if(a < b) { return a; } else{ return b } } )
 const mean = (arr) => sum(arr)/arr.length
-
+const runIteratorUntilDone = (iterator) => { var result; do { result = iterator.next(); } while (!result.done); return result.value; }
 
 /* Object initialization and gpt configuration */
 
@@ -33,6 +33,7 @@ let iarc = { mod_nlp: null }
  * @property {Function} correct_sentence_grammar - {@link iarc.correct_sentence_grammar}
  * @property {Function} process_agent_gpt_result - {@link iarc.process_agent_gpt_result}
  * @property {Function} correct_agents_from_gpt - {@link iarc.correct_agents_from_gpt}
+ * @property {Function} get_agents_from_nlp - {@link iarc.get_agents_from_nlp}
  * @property {Function} get_agents_from_gpt - {@link iarc.get_agents_from_gpt}
  * @property {Function} get_bert_answers - {@link iarc.get_bert_answers}
  * @property {Function} completions - {@link iarc.completions}
@@ -140,6 +141,8 @@ iarc.init_nlp = async () => {
         iarc.mod_nlp['sim'] = (await import('https://cdn.skypack.dev/wink-nlp/utilities/similarity')).default
         iarc.mod_nlp['nlp'] = iarc.mod_nlp.winkNLP( iarc.mod_nlp.model );
         iarc.mod_nlp['its'] = iarc.mod_nlp.nlp.its
+        
+        iarc.mod_nlp['DependencyParser'] = (await import('https://cdn.jsdelivr.net/npm/dependency-parser@1.0.4/+esm')).default
         
         // Wink search engine
         iarc.mod_nlp['bm25']  = (await import('https://cdn.skypack.dev/wink-bm25-text-search')).default;
@@ -527,6 +530,60 @@ iarc.correct_sentence_grammar = async function (sentence, model='gpt-3.5-turbo',
         console.log('Error: The maximum input size is 2000 words.')
         alert('Error: The maximum input size is 2000 words.')
     }
+}
+
+/** 
+* Retrieves mentions of agents in sentences
+* 
+*
+* @param {array} sections Array of section objects containing the the properties: name - section name; page_start: initial page; page_end: final page and content: list of treated sentences
+*
+* @returns {array} List of agents
+* 
+* @example
+* let content = await iarc.loadMonograph('https://publications.iarc.fr/_publications/media/download/5409/5f12a3cfc6a2291b8dca418b2d322642ccb8f0fc.pdf')
+* var sections = await iarc.get_header_sections(content)
+* sections = sectins.filter(e => e.name.includes('evaluation'))
+* let v = await iarc.get_agents_from_nlp(sections)
+*/
+iarc.get_agents_from_nlp = (sections) => {
+    var agents = []
+    for(var sc of sections){
+        var sentences = sc.content.map(e => e.toLowerCase() ).filter(e => (e.includes('there is') && e.includes('evidence') && e.includes('carcinogenicity') ) || ( e.includes('carcinogenic')  ) )
+        for (var s of sentences){
+            if( s.includes('there is') && s.includes('evidence') && s.includes('carcinogenicity of') ){
+                agents.push( s.split(' of ')[1] )
+            }
+            else if ( s.includes('carcinogenic') ){
+                var temp = s.split("carcinogenic")[0]
+                var news=[]
+                for( var k of temp.split(' ') ){
+                    if(k!="are" && k!="is"){
+                        news.push(k)
+                    }
+                }
+                agents.push(news.join(' '))
+            }
+        }
+    }
+    
+    return agents
+}
+
+// In test, experimental
+iarc.process_agent_sentence = (s) => {
+    s = s.toLowerCase() 
+    let doc = iarc.mod_nlp.nlp.readDoc(s);
+    let keywords = doc.tokens().out();
+    var transformed = []
+    for (var k in keywords){
+        transformed.push( { 'word': doc.tokens().out( iarc.mod_nlp.its.value )[k], 'pos': [ doc.tokens().out( iarc.mod_nlp.its.pos)[k].toLowerCase() ] } )
+    }
+    parseGenerator = iarc.mod_nlp.DependencyParser();
+    parseIterator = parseGenerator(transformed);
+    parsed = runIteratorUntilDone(parseIterator)
+    
+    return parsed
 }
 
 /** 

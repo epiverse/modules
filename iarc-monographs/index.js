@@ -88,6 +88,8 @@
                             
                             change_agent()
                             
+                            //fill_agents() 
+                            
                             question.value="Is there evidence for the carcinogenicity of opium consumption?"
                             
                             answer_wink()
@@ -108,6 +110,19 @@
                        })
                     }
                     init_use_case()
+                    
+                    var fill_agents = () => {
+                        var sub_chosen = agent.value
+                        var sections = info_sections[sub_chosen].filter(e => e.name.includes('evaluation'))
+                        var agents = iarc.get_agents_from_nlp( sections )
+                        var htmls = ""
+                        agents.forEach( e => { htmls+=`<span class="badge bg-primary mr mb-2"> ${e} </span>` } )
+                        if(htmls!=""){
+                            container_agents.style.display=""
+                            agents_nlp.innerHTML=htmls
+                        }
+                        
+                    }
                     
                     var answer_wink = async () => {
                         go_wink.value="Wait ..."

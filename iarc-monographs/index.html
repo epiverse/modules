@@ -28,6 +28,9 @@
                 width: 100px !important; 
                 display: inline-block;
             }
+            .mr{
+                margin-right: 5px;
+            }
         </style>
     </head>
     
@@ -96,6 +99,14 @@
                                         <select class="form-control mr-3" id="sections" onChange="change_section()" > </select>
                                     </div>
                                 </div>    
+                                
+                                <div class="card mb-3 mt-3 " id="container_agents" style="display: none;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Agents mentioned in this monograph:</h5>
+                                        <div id="agents_nlp"> </div>
+                                        <div id="agents_gpt"> </div>
+                                    </div>
+                                </div>   
                                 
                                 <div class="col-12">
                                     <div style="margin-bottom: 10px;" >
