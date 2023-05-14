@@ -115,6 +115,7 @@
                         var sub_chosen = agent.value
                         var sections = info_sections[sub_chosen].filter(e => e.name.includes('evaluation'))
                         var agents = iarc.get_agents_from_nlp( sections )
+                        console.log(agents)
                         var htmls = ""
                         agents.forEach( e => { htmls+=`<span class="badge bg-primary mr mb-2"> ${e} </span>` } )
                         if(htmls!=""){

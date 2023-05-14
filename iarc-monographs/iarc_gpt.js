@@ -547,22 +547,39 @@ iarc.correct_sentence_grammar = async function (sentence, model='gpt-3.5-turbo',
 * let v = await iarc.get_agents_from_nlp(sections)
 */
 iarc.get_agents_from_nlp = (sections) => {
+    var secnames = sections.map(e => e.name.toLowerCase())
+    
     var agents = []
     for(var sc of sections){
-        var sentences = sc.content.map(e => e.toLowerCase() ).filter(e => (e.includes('there is') && e.includes('evidence') && e.includes('carcinogenicity') ) || ( e.includes('carcinogenic')  ) )
-        for (var s of sentences){
+        var sentences = sc.content.map(e => e.toLowerCase() ).filter(e => (e.includes('there is') && e.includes('evidence') && e.includes('carcinogenicity of') ) || ( e.includes('carcinogenic')  ) )
+        sentences = iarc.remove_number_short_sentences(sentences)
+        transformed = []
+        sentences.forEach(e => { 
+            secnames.forEach(s => { e = e.replaceAll(s, '') } )
+            transformed.push( e ) 
+        })
+        for (var s of transformed){
+            var piece = null
             if( s.includes('there is') && s.includes('evidence') && s.includes('carcinogenicity of') ){
-                agents.push( s.split(' of ')[1] )
+                piece=s.split('carcinogenicity of ')[1]
+                
             }
-            else if ( s.includes('carcinogenic') ){
-                var temp = s.split("carcinogenic")[0]
-                var news=[]
-                for( var k of temp.split(' ') ){
-                    if(k!="are" && k!="is"){
-                        news.push(k)
+            else {
+                if ( s.includes('carcinogenic') && !s.includes('carcinogenicity') ){
+                    var temp = s.split("carcinogenic")[0]
+                    var news=[]
+                    for( var k of temp.split(' ') ){
+                        if(k!="are" && k!="is"){
+                            news.push(k)
+                        }
                     }
+                    piece=news.join(' ')
                 }
-                agents.push(news.join(' '))
+            }
+            
+            piece = (piece!=null) ? piece.split(' ').filter(e => e!="").join(' ') : null
+            if(piece!=null && !agents.includes(piece) ){
+                agents.push( piece )
             }
         }
     }
