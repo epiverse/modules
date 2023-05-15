@@ -92,8 +92,8 @@
                             
                             question.value="Is there evidence for the carcinogenicity of opium consumption?"
                             
-                            answer_wink()
-                            answer_tfjs()
+                            await answer_wink()
+                            await answer_tfjs()
                             
                             go_bert.value="Ask (BERT)"
                             go_bert.disabled=false
@@ -123,6 +123,14 @@
                             agents_nlp.innerHTML=htmls
                         }
                         
+                    }
+                    
+                    var answer_all = async () => {
+                        await answer_wink()
+                        await answer_tfjs()
+                        if( localStorage.GPT_API_key != "none"){
+                            await answer_gpt()
+                        }
                     }
                     
                     var answer_wink = async () => {
