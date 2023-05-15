@@ -178,7 +178,7 @@
                                 ans_html="Most probable answers:\n"
                                 var i=0
                                 for (var r of res){
-                                    ans_html+=`<p> <b>Answer ${i+1} - </b> ${r.text} </p>`
+                                    ans_html+=`<p> <b>Answer ${i+1} - </b> ${r.text} - <b>Score:</b> ${r.score} </p>`
                                     i+=1
                                 }
                             }
