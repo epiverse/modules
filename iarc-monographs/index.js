@@ -63,7 +63,7 @@
                         
                         notice.style.display=""
                         
-                        IarcGpt( key ).then( async v => {
+                        SurvC2Init( key ).then( async v => {
                             obj = v
                             console.log(obj)
                             
@@ -71,7 +71,7 @@
                             
                             var calls = []
                             for(var k of subs){
-                                calls.push( iarc.loadMonograph( obj.validated[k] ) )
+                                calls.push( survc2.loadMonograph( obj.validated[k] ) )
                             }
                             var dat = await Promise.all( calls )
                             
@@ -81,7 +81,7 @@
                             nav = {}
                             for(var k of subs){
                                 cases[k] = dat[i]
-                                info_sections[k] = iarc.get_header_sections( cases[k] )
+                                info_sections[k] = survc2.get_header_sections( cases[k] )
                                 nav[k] = info_sections[k].map(e => e.name+' - Page '+e.page_start)
                                 i+=1
                             }
@@ -114,7 +114,7 @@
                     var fill_agents = () => {
                         var sub_chosen = agent.value
                         var sections = info_sections[sub_chosen].filter(e => e.name.includes('evaluation'))
-                        var agents = iarc.get_agents_from_nlp( sections )
+                        var agents = survc2.get_agents_from_nlp( sections )
                         console.log(agents)
                         var htmls = ""
                         agents.forEach( e => { htmls+=`<span class="badge bg-primary mr mb-2"> ${e} </span>` } )
@@ -142,7 +142,7 @@
                         
                         var ans_html = "No answer found"
                         if(q && text){
-                            var res = await iarc.get_wink_answers(q, text)
+                            var res = await survc2.get_wink_answers(q, text)
                             
                             if(res.length > 0){
                                 ans_html="Most probable answers:\n"
@@ -172,7 +172,7 @@
                         
                         var ans_html = "No answer found"
                         if(q && text){
-                            var res = await iarc.get_bert_answers(q, text)
+                            var res = await survc2.get_bert_answers(q, text)
                             
                             if(res.length > 0){
                                 ans_html="Most probable answers:\n"
@@ -201,7 +201,7 @@
                         var text = context.value.split('.')
                         
                         if(q && text){
-                            var obj = await iarc.get_gpt_answers(q, text)
+                            var obj = await survc2.get_gpt_answers(q, text)
                             obj = obj.answer
                             
                             var ans_html = "No answer found"

@@ -9,14 +9,10 @@ const min = (arr) => arr.reduce( (a,b) => { if(a < b) { return a; } else{ return
 const mean = (arr) => sum(arr)/arr.length
 const runIteratorUntilDone = (iterator) => { var result; do { result = iterator.next(); } while (!result.done); return result.value; }
 
-/* Object initialization and gpt configuration */
-
-let survc2 = { mod_nlp: null }
-
 /**
  * Main global portable module.
  * @namespace 
- * @property {Function} SurvC2 - {@link SurvC2}
+ * @property {Function} SurvC2Init - {@link SurvC2Init}
  *
  * @namespace survc2
  * @property {Function} getValidatedData - {@link survc2.getValidatedData}
@@ -50,7 +46,7 @@ let survc2 = { mod_nlp: null }
  /**
  *
  *
- * @object SurvC2
+ * @object SurvC2Init
  * @attribute {Module} gpt Library for open ai api key management.
  * @attribute {array} monographs List of iarc monographs with information of volume, yea and pdf download links scraped from the iarc web pages.
  * @attribute {Object} validated Object containing the names of the known agents in the knowledge base with the respective mapped pdf link for the whole document
@@ -64,9 +60,9 @@ let survc2 = { mod_nlp: null }
 * @returns {Object} IARC library object for nlp and chat gpt functions. .
 * 
 * @example
-* let v = await SurvC2()
+* let v = await SurvC2Init()
 */
-var SurvC2 = async function (key=''){
+var SurvC2Init = async function (key=''){
     localStorage.GPT_API_key = key
     
     var obj = {'monographs': []}
@@ -78,6 +74,10 @@ var SurvC2 = async function (key=''){
     return obj
 }
 
+/* Object initialization and gpt configuration */
+
+let survc2 = { mod_nlp: null }
+
 /** 
 * Get mapping between substances and link for monograph in pdf
 * 
@@ -87,7 +87,7 @@ var SurvC2 = async function (key=''){
 * @returns {Object} Object mapping the name of the agents discussed by iarc with their respective pdf link for the entire monograph
 * 
 * @example
-* let obj = await SurvC2()
+* let obj = await SurvC2Init()
 * let dat = await survc2.getValidatedData(obj)
 */
 survc2.getValidatedData = async function (obj){
@@ -1111,5 +1111,3 @@ if(typeof(Plotly)=="undefined"){
 if(survc2.mod_nlp == null){
     //survc2.init_nlp().then( v => {} )
 }
-
-export { SurvC2, survc2 }
