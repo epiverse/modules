@@ -20,7 +20,7 @@ var epiverse = {}
 * await epiverse.getStateCodeMap()
 */
 epiverse.getStateCodeMap = async function (cobject){
-    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/` : `https://${location.host}/`
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/` : `https://${location.host}/modules/`
     var temp = await fetch(server+'convert_state_in_codes.json')
     var states = await temp.json()
     
@@ -83,7 +83,7 @@ epiverse.color =function(val){
 * await epiverse.loadGeoCounties(0.2)
 */
 epiverse.loadGeoCounties = async function(cobject) {
-    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/` : `https://${location.host}/`
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/` : `https://${location.host}/modules/`
     
     var t = ''
     
