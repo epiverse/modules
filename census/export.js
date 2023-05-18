@@ -1175,7 +1175,7 @@ if(typeof(Plotly)=="undefined"){
 	census.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 }
 if( census.epi==undefined ){
-    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/export.js` : `https://${location.host}/export.js`
+    var server = (location.host=='127.0.0.1') ? `http://${location.host}/nih/modules/export.js` : `https://${location.host}/modules/export.js`
     import(server).then( (module) => {
         census.epi = module
     })
