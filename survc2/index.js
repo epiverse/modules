@@ -3,7 +3,7 @@
                     var nav = null
                     
                     var set_keygpt = () => {
-                        var key = keygpt.value
+                        var key = (localStorage.GPT_API_key==null) ? keygpt.value : localStorage.GPT_API_key
                         
                         if(key==''){
                             key='none'
@@ -102,6 +102,8 @@
                             go_wink.disabled=false
                             
                             if( localStorage.GPT_API_key != "none"){
+                                await answer_gpt()
+                                
                                 go_gpt.value="Ask (GPT)"
                                 go_gpt.disabled=false
                             }

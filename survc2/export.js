@@ -9,14 +9,10 @@ const min = (arr) => arr.reduce( (a,b) => { if(a < b) { return a; } else{ return
 const mean = (arr) => sum(arr)/arr.length
 const runIteratorUntilDone = (iterator) => { var result; do { result = iterator.next(); } while (!result.done); return result.value; }
 
-/* Object initialization and gpt configuration */
-
-let survc2 = { mod_nlp: null }
-
 /**
  * Main global portable module.
  * @namespace 
- * @property {Function} SurvC2 - {@link SurvC2}
+ * @property {Function} SurvC2Init - {@link SurvC2Init}
  *
  * @namespace survc2
  * @property {Function} getValidatedData - {@link survc2.getValidatedData}
@@ -50,7 +46,7 @@ let survc2 = { mod_nlp: null }
  /**
  *
  *
- * @object SurvC2
+ * @object SurvC2Init
  * @attribute {Module} gpt Library for open ai api key management.
  * @attribute {array} monographs List of iarc monographs with information of volume, yea and pdf download links scraped from the iarc web pages.
  * @attribute {Object} validated Object containing the names of the known agents in the knowledge base with the respective mapped pdf link for the whole document
@@ -64,9 +60,9 @@ let survc2 = { mod_nlp: null }
 * @returns {Object} IARC library object for nlp and chat gpt functions. .
 * 
 * @example
-* let v = await SurvC2()
+* let v = await SurvC2Init()
 */
-var SurvC2 = async function (key=''){
+var SurvC2Init = async function (key=''){
     localStorage.GPT_API_key = key
     
     var obj = {'monographs': []}
@@ -78,6 +74,10 @@ var SurvC2 = async function (key=''){
     return obj
 }
 
+/* Object initialization and gpt configuration */
+
+let survc2 = { mod_nlp: null }
+
 /** 
 * Get mapping between substances and link for monograph in pdf
 * 
@@ -87,7 +87,7 @@ var SurvC2 = async function (key=''){
 * @returns {Object} Object mapping the name of the agents discussed by iarc with their respective pdf link for the entire monograph
 * 
 * @example
-* let obj = await SurvC2()
+* let obj = await SurvC2Init()
 * let dat = await survc2.getValidatedData(obj)
 */
 survc2.getValidatedData = async function (obj){
@@ -187,7 +187,8 @@ survc2.loadMonograph = async function(link){
             var note = false
             items.forEach(e => { 
                 text+=e.str+'\n' 
-                if( e.str.toLowerCase().replaceAll(' ','').indexOf('note')!=-1 && e.str.toLowerCase().replaceAll(' ','').indexOf('reader')!=-1 && (e.str.toLowerCase().replace(' ', '').indexOf('reader') - e.str.toLowerCase().replace(' ', '').indexOf('note') ) < 20 ){
+                //if( e.str.toLowerCase().replaceAll(' ','').indexOf('note')!=-1 && e.str.toLowerCase().replaceAll(' ','').indexOf('reader')!=-1 && (e.str.toLowerCase().replace(' ', '').indexOf('reader') - e.str.toLowerCase().replace(' ', '').indexOf('note') ) < 20 ){
+                if( text.toLowerCase().replaceAll(' ','').indexOf('note')!=-1 && text.toLowerCase().replaceAll(' ','').indexOf('reader')!=-1 && ( text.toLowerCase().replace(' ', '').indexOf('reader') - text.toLowerCase().replace(' ', '').indexOf('note') ) < 20 ){
                     note=true
                 }
             })
@@ -226,45 +227,84 @@ survc2.get_header_sections = (content) => {
         var end = lc[1].page
         var add = end-1
         
-        var flag = true
+        var flag = false
         var previous = -1        
         for(var k=start; k<end; k++){
             var temp = content.filter( c => c.page==k )[0]
             if(temp!=undefined){
                 console.log('processing page ', k)
                 var i=0
-                var els = temp.content.split('\n')
+                    
+                var lst = temp.content.split('\n\n')
+                //console.log(lst)
+                if( lst.length < 5 && k!=end-1){
+                    var aux = temp.content.split('\n')
+                    var lsta=[]
+                    var iter=[]
+                    for(var el of aux){
+                        iter.push(el)
+                        if( el.indexOf('. . . . .') != -1 || el.indexOf('.....') != -1 ){
+                            lsta.push(iter.join('\n'))
+                            iter=[]
+                        }
+                    }
+                    lst=lsta
+                    //console.log(lst)
+                }
+                var els = lst.map( s => s.replaceAll('\n','.').split('.').filter(e => e!='' && e!=' ' ) ).filter(e => e.length > 1)
+                //var els = temp.content.split('\n\n').map( s => s.split('\n').filter(e => e!='' && e!=' ' && e.indexOf('. . . .')==-1 ) ).filter(e => e.length > 2)
                 //console.log(els)
                 var st = ''
                 for(var el of els ){
-                    if(el.indexOf('. . . . . .')!=-1){
-                        var page = (! isNaN( parseInt(els[i+1]) ) && els[i+1]!='' && els[i+1]!=' ' ) ? parseInt(els[i+1]) : parseInt(els[i+2])
-                        st = ( isNaN( parseInt(els[i-1]) ) && els[i-1]!='' && els[i-1]!=' ' ) ? els[i-1] : els[i-2]
+                    var sec = []
+                    var fn = 0
+                    for (var iel of el){
+                         if( isNaN( Number(iel) ) ){
+                            sec.push(iel)
+                         }
+                         else{
+                            if(fn==0){
+                                fn = Number(iel)
+                            } 
+                         }
+                    }
+                    var aux = sec.join(' ')
+                    var sta = aux.toLowerCase()
+                    
+                    var page = Number( el.slice(-1)[0].replaceAll(' ','') )
+                    //console.log(sta, page, !isNaN( page ))
+                    if( sta.indexOf('note')!=-1 && sta.indexOf('reader')!=-1 ){
+                        if(page!=1){
+                            add=0
+                        }
+                    }
+                    
+                    if( !isNaN( page ) && sta.indexOf('note')==-1 && sta.indexOf('reader')==-1 && sta.indexOf('iarc monographs')==-1 ){
+                        
                         if(previous!=-1 && flag){
                             info_sections[ info_sections.length-1 ].content = survc2.get_section_slice(content, previous+add, page+add)
                             info_sections[ info_sections.length-1 ].page_end = page
                         }
+                       // console.log(add, aux, flag)
+                        st = sta.replaceAll(' ', '')
+                        if( ( st.indexOf('glossary')!=-1 || st.indexOf('appendix')!=-1 || st.indexOf('annex')!=-1 || (st.indexOf('cumulative')!=-1 && st.indexOf('index')!=-1) || st.indexOf('listof')!=-1 || st.indexOf('breviation')!=-1 ) ){
+                            //console.log('-----------', page)
+                            flag=false
+                            if( info_sections[ info_sections.length-1 ] != undefined){
+                                info_sections[ info_sections.length-1 ].content = survc2.get_section_slice(content, previous+add, page+add)
+                                info_sections[ info_sections.length-1 ].page_end = fn
+                            }
+                        }
                         
                         if(flag){
-                            info_sections.push( { 'name': st, 'page_start': page } )
+                            info_sections.push( { 'name': aux, 'page_start': page } )
+                            previous = page
                         }
                         
-                        if( ( st.indexOf('glossary')!=-1 || st.indexOf('appendix')!=-1 || st.indexOf('annex')!=-1 || st.replaceAll(' ', '').indexOf('listof')!=-1 || st.replaceAll(' ', '').indexOf('breviation')!=-1 ) ){
-                            flag=false
-                        }
-                        
-                        previous=page
                     }
                     
-                    st=el.toLowerCase().replaceAll(' ','')
-                    if( previous!=-1 && ( st.indexOf('glossary')!=-1 || st.indexOf('appendix')!=-1 || st.indexOf('annex')!=-1 || st.replaceAll(' ', '').indexOf('listof')!=-1 || st.replaceAll(' ', '').indexOf('breviation')!=-1 ) ){
-                        flag=false
-                        if( info_sections[ info_sections.length-1 ].page_end==undefined ){
-                            var page = (! isNaN( parseInt(els[i+1]) ) && els[i+1]!='' && els[i+1]!=' ' ) ? parseInt(els[i+1]) : parseInt(els[i+2])
-                            
-                            info_sections[ info_sections.length-1 ].content = survc2.get_section_slice(content, previous+add, page+add)
-                            info_sections[ info_sections.length-1 ].page_end = page
-                        }
+                    if( previous==-1 && !isNaN( page ) && ( sta.indexOf('preamble')!=-1 || sta.indexOf('reader')!=-1 || sta.indexOf('background')!=-1 ) ){
+                        flag=true
                     }
                     
                     i+=1
@@ -296,7 +336,7 @@ survc2.get_section_slice = (content, start, end) => {
         var temp = content.filter( c => c.page==i )[0]
         text+=temp.content+"\n"
     }
-    text = text.split('.').filter(e => e.length >= 30 ).map(e => survc2.remove_breaks(e))
+    text = text.split('.').filter(e => e.length >= 30 && e.toLowerCase().indexOf('iarc')==-1 && e.toLowerCase().indexOf('monographs')==-1 ).map(e => survc2.remove_breaks(e))
     return text
 }
 
