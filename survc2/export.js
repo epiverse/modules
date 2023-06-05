@@ -187,8 +187,9 @@ survc2.loadMonograph = async function(link){
             var note = false
             items.forEach(e => { 
                 text+=e.str+'\n' 
+                var aux = text.toLowerCase().replaceAll(' ','').replaceAll('\n','')
                 //if( e.str.toLowerCase().replaceAll(' ','').indexOf('note')!=-1 && e.str.toLowerCase().replaceAll(' ','').indexOf('reader')!=-1 && (e.str.toLowerCase().replace(' ', '').indexOf('reader') - e.str.toLowerCase().replace(' ', '').indexOf('note') ) < 20 ){
-                if( text.toLowerCase().replaceAll(' ','').indexOf('note')!=-1 && text.toLowerCase().replaceAll(' ','').indexOf('reader')!=-1 && ( text.toLowerCase().replace(' ', '').indexOf('reader') - text.toLowerCase().replace(' ', '').indexOf('note') ) < 20 ){
+                if( aux.indexOf('note')!=-1 && aux.indexOf('reader')!=-1 && ( aux.indexOf('reader') - aux.indexOf('note') ) < 20 ){
                     note=true
                 }
             })
@@ -219,6 +220,64 @@ survc2.loadMonograph = async function(link){
 * let content = await survc2.loadMonograph('https://publications.survc2.fr/_publications/media/download/5409/5f12a3cfc6a2291b8dca418b2d322642ccb8f0fc.pdf')
 * let v = await survc2.get_header_sections(content)
 */
+survc2.get_header_sections_ = (content) => {
+    var info_sections = []
+    var lc = content.filter( s => s.note_mark )
+    if(lc.length >= 2){
+        var start = lc[0].page
+        var end = lc[1].page
+        var add = end-1
+        
+        var flag = true
+        var previous = -1        
+        for(var k=start; k<end; k++){
+            var temp = content.filter( c => c.page==k )[0]
+            if(temp!=undefined){
+                console.log('processing page ', k)
+                var i=0
+                var els = temp.content.split('\n')
+                //console.log(els)
+                var st = ''
+                for(var el of els ){
+                    if(el.indexOf('. . . . . .')!=-1){
+                        var page = (! isNaN( parseInt(els[i+1]) ) && els[i+1]!='' && els[i+1]!=' ' ) ? parseInt(els[i+1]) : parseInt(els[i+2])
+                        st = ( isNaN( parseInt(els[i-1]) ) && els[i-1]!='' && els[i-1]!=' ' ) ? els[i-1] : els[i-2]
+                        if(previous!=-1 && flag){
+                            info_sections[ info_sections.length-1 ].content = survc2.get_section_slice(content, previous+add, page+add)
+                            info_sections[ info_sections.length-1 ].page_end = page
+                        }
+                        
+                        if(flag){
+                            info_sections.push( { 'name': st, 'page_start': page } )
+                        }
+                        
+                        if( ( st.indexOf('glossary')!=-1 || st.indexOf('appendix')!=-1 || st.indexOf('annex')!=-1 || st.replaceAll(' ', '').indexOf('listof')!=-1 || st.replaceAll(' ', '').indexOf('breviation')!=-1 ) ){
+                            flag=false
+                        }
+                        
+                        previous=page
+                    }
+                    
+                    st=el.toLowerCase().replaceAll(' ','')
+                    if( previous!=-1 && ( st.indexOf('glossary')!=-1 || st.indexOf('appendix')!=-1 || st.indexOf('annex')!=-1 || st.replaceAll(' ', '').indexOf('listof')!=-1 || st.replaceAll(' ', '').indexOf('breviation')!=-1 ) ){
+                        flag=false
+                        if( info_sections[ info_sections.length-1 ].page_end==undefined ){
+                            var page = (! isNaN( parseInt(els[i+1]) ) && els[i+1]!='' && els[i+1]!=' ' ) ? parseInt(els[i+1]) : parseInt(els[i+2])
+                            
+                            info_sections[ info_sections.length-1 ].content = survc2.get_section_slice(content, previous+add, page+add)
+                            info_sections[ info_sections.length-1 ].page_end = page
+                        }
+                    }
+                    
+                    i+=1
+                }
+            }
+        }
+    }
+    
+    return info_sections
+}
+
 survc2.get_header_sections = (content) => {
     var info_sections = []
     var lc = content.filter( s => s.note_mark )
@@ -241,12 +300,38 @@ survc2.get_header_sections = (content) => {
                     var aux = temp.content.split('\n')
                     var lsta=[]
                     var iter=[]
-                    for(var el of aux){
+                    var ki = 0
+                    //for(var el of aux){
+                    while(ki < aux.length){
+                        el=aux[ki]
+                        
                         iter.push(el)
+                        flag=true
                         if( el.indexOf('. . . . .') != -1 || el.indexOf('.....') != -1 ){
-                            lsta.push(iter.join('\n'))
+                            var temppg = el.split('.').slice(-1)[0]
+                            if( isNaN(Number(temppg)) || temppg=='' || temppg==' ' ){
+                                var jj = ki
+                                while( (isNaN(Number(temppg)) || temppg=='' || temppg==' ') && ki < aux.length ){
+                                    jj+=1
+                                    temppg = aux[jj]
+                                }
+                                
+                                if(jj < aux.length-1){
+                                    iter.push(temppg)
+                                    ki=jj
+                                }
+                                else{
+                                    flag=false
+                                }
+                            }
+                            
+                            if(flag){
+                                lsta.push(iter.join('\n'))
+                            }
+                            
                             iter=[]
                         }
+                        ki+=1
                     }
                     lst=lsta
                     //console.log(lst)
@@ -413,6 +498,9 @@ survc2.remove_number_short_sentences = (sentences, min_words=3) => {
 * let v = await survc2.calculate_sim('tversky', 'Is there evidence for the carcinogenicity of opium consumption?', 'Opium consumption causes cancers of the urinary bladder, larynx, and lung')
 */
 survc2.calculate_sim = (type, question, sentence) => {
+    question = question.toLowerCase()
+    sentence = sentence.toLowerCase()
+    
     var sim_types = ['cosine', 'tversky', 'oo']
     type = ( sim_types.includes(type) ) ? type : 'cosine'
     
@@ -455,6 +543,7 @@ survc2.filter_context_sections = (q, sections, st) => {
      
     // Measure similarity by section
     // Choose the section containing the highest scores
+    
     var metrics = {'bySection': {}, 'overall': [] }
     var all=[]
     for (var section of sections){
@@ -467,17 +556,35 @@ survc2.filter_context_sections = (q, sections, st) => {
         all = all.concat(x)
         
         metrics['bySection'][k]={}
-        var scores = x.map(e => e['similarity'])
-        for (f of ['max','min','mean']){
-            metrics['bySection'][k][f] = eval(`${f}(scores)`)
+        
+        if( x.length > 0 ){
+            var scores = x.map(e => e['similarity'])
+            for (f of ['max','min','mean']){
+                metrics['bySection'][k][f] = eval(`${f}(scores)`)
+            }
         }
+        else{
+            for (f of ['max','min','mean']){
+                metrics['bySection'][k][f] = -1
+            }
+        }
+        
         metrics['bySection'][k]['bySentence'] = x.sort( (a,b) => b['similarity'] - a['similarity'] )
     }
     metrics['overall'] = {}
-    var scores = all.map(e => e['similarity'])
-    for (f of ['max','min','mean']){
-        metrics['overall'][f] = eval(`${f}(scores)`)
+    
+    if( all.length > 0 ){
+        var scores = all.map(e => e['similarity'])
+        for (f of ['max','min','mean']){
+            metrics['overall'][f] = eval(`${f}(scores)`)
+        }
     }
+    else{
+        for (f of ['max','min','mean']){
+            metrics['overall'][k][f] = -1
+        }
+    }
+    
     metrics['overall']['bySentence'] = all.sort( (a,b) => b['similarity'] - a['similarity'] )
     
     return metrics
@@ -869,7 +976,7 @@ survc2._prepTask = function ( text ) {
 * let v = await survc2.get_wink_answers( "Is there evidence for the carcinogenicity of opium consumption?", ["There is sufficient evidence in humans for the carcinogenicity of opium consumption.", "Opium consumption causes cancers of the urinary bladder, larynx, and lung.", "Positive associations have been observed between opium consumption and cancers of the oesophagus, stomach, pancreas, and pharynx.", "2 Cancer in experimental animals There is inadequate evidence in experimental animals regarding the carcinogenicity of opium.", "3 Mechanistic evidence There is strong evidence in experimental systems that opium, specifically sukhteh and opium pyrolysates, exhibits key characteristics of carcinogens (it is genotoxic).", "4 Overall evaluation Opium consumption is carcinogenic to humans (Group 1)"] )
 */
 survc2.get_wink_answers = async (q, context) => {
-    var corpus = survc2.remove_number_short_sentences(context)
+    var corpus = survc2.remove_number_short_sentences(context, 3)
     corpus = corpus.map( s => { return { 'body': s} } )
     
     var query = q;
@@ -972,7 +1079,7 @@ survc2.processMonographLinkHtml = function(links, lines){
         }
           
         if( l.indexOf('/Book-And-Report-Series/')!=-1 && l.indexOf('Details')==-1 && l.split('>').length > 2 ){
-            key='https://publications.survc2.fr'+l.split('"')[1]
+            key='https://publications.iarc.fr'+l.split('"')[1]
             flag=true
         }
         
@@ -1019,7 +1126,7 @@ survc2.getBookLinks = async function(links){
             
             for (var li of lines){
                 if( li.indexOf('/media/download/')!=-1 && li.indexOf('Download Free PDF')!=-1 ){
-                    ld='https://publications.survc2.fr'+li.split('"')[1]
+                    ld='https://publications.iarc.fr'+li.split('"')[1]
                     var name = l.split('/')
                     name=name[name.length-1].split('-').slice(0,-1).join(' ')
                     var obj = { 'link': l, 'link_pdf': ld, 'volume': links[l].split('_')[0], 'year': links[l].split('_')[1], 'name_agent': name }
@@ -1054,7 +1161,8 @@ survc2.getBookLinks = async function(links){
 */
 survc2.scrapSourceMonoGraphLinks = async function(){
     var result = {}
-    var url= "https://publications.survc2.fr/Book-And-Report-Series/Iarc-Monographs-On-The-Identification-Of-Carcinogenic-Hazards-To-Humans?sort_by=year_desc&limit=50&page=1"
+    
+    var url= "https://publications.iarc.fr/Book-And-Report-Series/Iarc-Monographs-On-The-Identification-Of-Carcinogenic-Hazards-To-Humans?sort_by=year_desc&limit=50&page=1"
     survc2.getExtractLines(url).then( async lines => {
         var lines  = lines
         var links={}
@@ -1068,7 +1176,7 @@ survc2.scrapSourceMonoGraphLinks = async function(){
             
         var urls=[]    
         for (var i=2; i<=n; i++){
-            urls.push( "https://publications.survc2.fr/Book-And-Report-Series/Iarc-Monographs-On-The-Identification-Of-Carcinogenic-Hazards-To-Humans?sort_by=year_desc&limit=50&page="+i )
+            urls.push( "https://publications.iarc.fr/Book-And-Report-Series/Iarc-Monographs-On-The-Identification-Of-Carcinogenic-Hazards-To-Humans?sort_by=year_desc&limit=50&page="+i )
         }
         
         var cnt=0
