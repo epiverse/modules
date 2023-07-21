@@ -42,7 +42,11 @@
             
                 <ul class="nav nav-tabs" id="options" role="tablist">
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">About IARC Library</button>
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">About IARC CI5 data</button>
+                  </li>
+                  
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cause-tab" data-bs-toggle="tab" data-bs-target="#cause" type="button" role="tab" aria-controls="cause" aria-selected="false">About IARC Cancer causes</button>
                   </li>
                   
                   <li class="nav-item" role="presentation">
@@ -53,7 +57,49 @@
                 <div class="tab-content" id="optionsContent">
                     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
                 
-                        <section id="introduction" class="mt-3">
+                        <section id="introduction-ci5" class="mt-3">
+                            <p>
+                                This is the IARC (International Agency for Research on Cancer) module that acquires and allows exploration cancer cases incidence in populations at risk of specific geographic locations organized by year and gender.
+                            </p>
+                        </section>
+                        
+                        <section id="usage">
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h3>Data</h3>
+                                    <p> Explore evolution of cancer cases along the years </p>
+                                    
+                                    <div class="form-group col-10 mb-3" >
+                                            <label class="fields mr-2" style="text-align: right;" >Continents:</label>
+                                            <select id="continent" class="form-control mr-3 fields" style="width: 200px !important" onchange="iarc.fillRegistryOptions( continent.value, datci, 'registry')" >  <option value="0" > Loading ... </option>  </select> 
+                                            
+                                            <label class="fields mr-2" style="text-align: right; width: 250px !important" >Specific geographic locations: </label>
+                                            <select id="registry" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                    </div>
+                                    
+                                    <div class="form-group col-10" >
+                                            <label class="fields mr-2" style="text-align: right;" >Gender: </label>
+                                            <select id="gender" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                            
+                                            <label class="fields mr-2" style="text-align: right;" >Cancer type: </label>
+                                            <select id="cancer" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                            
+                                            <input class="btn btn-primary mr-2" type="button" id="cfilter" disabled onclick="plot_lexis()" value="Plot lexis diagram" />
+                                            <input class="btn btn-secondary mr-2" type="button" id="cexport" disabled onclick="export_apc()" value="Export as APC input" />
+                                    </div>
+                                    
+                                    <div class="col-12"  id="summary_plot_lexis"> </div>
+                                
+                                </div>
+                            </div>
+                              
+                        </section>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="cause" role="tabpanel" aria-labelledby="cause-tab">
+                
+                        <section id="introduction-causes" class="mt-3">
                             <p>
                                 This is the IARC (International Agency for Research on Cancer) module that acquires and allows exploration of global cancer data provided by IARC about causal relation of four factors (Obesity, UV radiation, Alcohol and Infections) in the distinct types of cancer. It also organizes this data according to countries, regions, attributable and preventable.
                             </p>

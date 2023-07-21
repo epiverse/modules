@@ -8,6 +8,14 @@ console.log('iarc.js loaded')
  * @property {Function} Iarc - {@link Iarc}
  *
  * @namespace iarc
+ * @property {Function} loadCi5Data - {@link iarc.loadCi5Data}
+ * @property {Function} fillContinentOptions - {@link iarc.fillContinentOptions}
+ * @property {Function} fillRegistryOptions - {@link iarc.fillRegistryOptions}
+ * @property {Function} fillGenderOptions - {@link iarc.fillGenderOptions}
+ * @property {Function} fillCancerOptions - {@link iarc.fillCancerOptions}
+ * @property {Function} plotAgeByYearCancerIncidence - {@link iarc.plotAgeByYearCancerIncidence}
+ * @property {Function} exportAsApcToolInput - {@link iarc.exportAsApcToolInput}
+ * @property {Function} saveFile - {@link iarc.saveFile }
  * @property {Function} causesGet - {@link iarc.causesGet}
  * @property {Function} causesGetAll - {@link iarc.causesGetAll}
  * @property {Function} vizFillSelectCause - {@link iarc.vizFillSelectCause}
@@ -15,7 +23,19 @@ console.log('iarc.js loaded')
  * @property {Function} vizFillDescriptionTable - {@link iarc.vizFillDescriptionTable}
  * @property {Function} vizChangePage - {@link iarc.vizChangePage}
  * @property {Function} vizPlotSummary - {@link iarc.vizPlotSummary}
+ * @property {Function} IarcGpt - {@link iarc.IarcGpt}
+ * @property {Function} getValidatedData - {@link iarc.getValidatedData}
+ * @property {Function} completions - {@link iarc.completions}
+ * @property {Function} getAgentDescriptions - {@link iarc.getAgentDescriptions}
+ * @property {Function} perfomanceTest - {@link iarc.perfomanceTest}
+ * @property {Function} loadMonograph - {@link iarc.loadMonograph}
+ * @property {Function} loadScrapedMonographs - {@link iarc.loadScrapedMonographs}
+ * @property {Function} getExtractLines - {@link iarc.getExtractLines}
+ * @property {Function} processMonographLinkHtml - {@link iarc.processMonographLinkHtml}
+ * @property {Function} getBookLinks - {@link iarc.getBookLinks}
+ * @property {Function} scrapSourceMonoGraphLinks - {@link iarc.scrapSourceMonoGraphLinks}
  * @property {Function} loadScript - {@link iarc.loadScript}
+
  */
 
 
@@ -51,6 +71,353 @@ iarc.causes=['obesity','infections','uv','alcohol']
 iarc.causesBy=['countries','cancers','attributable','regions','preventable']
 
 /** 
+* Get CI5 epidemiology data and organizes acording to each geographic location group the population number at risk and the cases incidence by cancer type and year
+* 
+*
+*
+* @returns {Object} Object file containing the mapping dictionaries for geographical areas of the registries and populations at risk by gender. The third dictionary contains data organized by geographical group, specific location, gener, and cases incidence of several types of cancer by year
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+*/
+iarc.loadCi5Data = async () => {
+    var res = {}
+    var dat = { "dict_registry": {}, "dict_population": {}, "data_cases": { } }
+    
+    var url = "https://corsproxy.io/?https://ci5.iarc.fr/CI5plus/old/CI5plus_Summary_April2019.zip"
+    const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip/+esm')).default
+    
+    fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+        var zip = new JSZip();
+        zip.loadAsync(blob)
+        .then( async (zip) => {
+            d = zip;
+            console.log(d.files);
+            
+            // Getting registry sections
+            Object.keys(d.files).forEach(e => {
+                if(e.indexOf('_Pops')!=-1 ){
+                    var section = e.split('_')[0]
+                    res[section] = JSON.parse( JSON.stringify( dat ))
+                }
+            })
+            
+            var maps = { "1": "Male", "2": "Female" }
+            
+            // Getting dict cancer types
+            var mapc = {}
+            var txt = await d.file('cancer_summary.csv').async("string");
+            var tab = txt.split(/[\n\r]+/g).map(e => e.split(','))
+            tab.forEach( e => { 
+                if( e.length > 1) {
+                    mapc[e[0].replaceAll(' ', '')] = e[1].replaceAll('"', '')
+                }
+             } )
+             
+             Object.keys(res).forEach( async section => {
+                // Getting correct name of the registries
+                var mapr = {}
+                txt = await d.file( section+'.csv').async("string");
+                tab = txt.split(/[\n\r]+/g).map(e => e.split(','))
+                tab.forEach( e => { 
+                    if( e.length > 1) {
+                        mapr[e[2].replaceAll(' ', '')] = e[3].replaceAll('"', '')
+                        res[section]['dict_registry'][ e[2].replaceAll(' ', '') ] = { 'name': e[3].replaceAll('"', ''), 'start': parseInt(e[4]), 'end': parseInt(e[5]) }
+                    }
+                 } )
+                
+                // Getting population information 
+                txt = await d.file( section+'_Pops.csv').async("string");
+                tab = txt.split(/[\n\r]+/g).map(e => e.split(','))
+                var age_groups = tab[0].slice(3).map( e => e.replace('P','N') )
+                tab.slice(1).forEach( e => { 
+                    if( e.length > 1) {
+                        var reg = mapr[ e[0].replaceAll(' ', '') ]
+                        if ( ! Object.keys( res[section]['dict_population'] ).includes(reg) ){
+                            res[section]['dict_population'][reg]={}
+                        }  
+                        
+                        var gender = maps[ e[2] ]
+                        if ( ! Object.keys( res[section]['dict_population'][reg] ).includes(gender) ){
+                            res[section]['dict_population'][reg][gender]={}
+                        }  
+                        
+                        var year = e[1]
+                        if ( ! Object.keys( res[section]['dict_population'][reg][gender] ).includes(year) ){
+                            res[section]['dict_population'][reg][gender][year]={}
+                        }  
+                        
+                        var pops = e.slice(3)
+                        var j = 0
+                        for (var ag of age_groups){
+                            res[section]['dict_population'][reg][gender][year][ag] = pops[j]
+                            j+=1
+                        }
+                    }
+                 } )
+                
+                // Getting cases by cancer type
+                txt = await d.file( section+'_Cases.csv').async("string");
+                tab = txt.split(/[\n\r]+/g).map(e => e.split(','))
+                var case_groups = tab[0].slice(4)
+                tab.slice(1).forEach( e => { 
+                    if( e.length > 1) {
+                        var reg = mapr[ e[0].replaceAll(' ', '') ]
+                        if ( ! Object.keys( res[section]['data_cases'] ).includes(reg) ){
+                            res[section]['data_cases'][reg]={}
+                        }  
+                        
+                        var gender = maps[ e[2] ]
+                        if ( ! Object.keys( res[section]['data_cases'][reg] ).includes(gender) ){
+                            res[section]['data_cases'][reg][gender]={}
+                        }  
+                        
+                        var cancer = mapc[ e[3].replaceAll(' ', '') ]
+                        if ( ! Object.keys( res[section]['data_cases'][reg][gender] ).includes(cancer) ){
+                            res[section]['data_cases'][reg][gender][cancer]={}
+                        }  
+                        
+                        var year = e[1]
+                        if ( ! Object.keys( res[section]['data_cases'][reg][gender][cancer] ).includes(year) ){
+                            res[section]['data_cases'][reg][gender][cancer][year]={}
+                        }  
+                        
+                        var cases = e.slice(4)
+                        var j = 0
+                        for ( var cs of case_groups){
+                            res[section]['data_cases'][reg][gender][cancer][year][cs] = cases[j]
+                            j+=1
+                        }
+                    }
+                 } )
+             })
+             
+             return res
+            
+        })
+        .catch((err) => {
+          console.log("Error reading zip:", err);
+        });
+    })
+    .catch((err) => {
+        console.log("Error fetching zip:", err);
+    });
+    
+    return res;
+}
+
+/** 
+* Fill select continent options
+* 
+*
+* @param {Object} dat CI5 data object
+* @param {string} ide Tag identifier
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.fillContinentOptions(v, 'continent')
+*/
+iarc.fillContinentOptions = async (dat, ide)=>{
+    var ops = Object.keys( dat )
+    var htmls = ""
+    ops.forEach( e => htmls += `<option value="${e}">${e}</option>` )
+    document.getElementById(ide).innerHTML = htmls
+}
+
+/** 
+* Fill select Registry options
+* 
+*
+* @param {string} continent Continent
+* @param {Object} dat CI5 data object
+* @param {string} ide Tag identifier
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.fillRegistryOptions('Europe', v, 'registry')
+*/
+iarc.fillRegistryOptions = async (continent, dat, ide)=>{
+    var ops = Object.keys( dat[ continent ]['data_cases'] )
+    var htmls = ""
+    ops.forEach( e => htmls += `<option value="${e}">${e}</option>` )
+    document.getElementById(ide).innerHTML = htmls
+}
+
+/** 
+* Fill select Gender options
+* 
+*
+* @param {Object} dat CI5 data object
+* @param {string} ide Tag identifier
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.fillGenderOptions(v, 'gender')
+*/
+iarc.fillGenderOptions = async (dat, ide)=>{
+    var conts = Object.keys( dat )
+    var regs = Object.keys( dat[ conts[0] ]['data_cases'] )
+    var ops = Object.keys( dat[ conts[0] ]['data_cases'][ regs[0] ] )
+    var htmls = ""
+    ops.forEach( e => htmls += `<option value="${e}">${e}</option>` )
+    document.getElementById(ide).innerHTML = htmls
+}
+
+/** 
+* Fill select Cancer options
+* 
+*
+* @param {Object} dat CI5 data object
+* @param {string} ide Tag identifier
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.fillCancerOptions(v, 'cancer')
+*/
+iarc.fillCancerOptions = async (dat, ide)=>{
+    var conts = Object.keys( dat )
+    var regs = Object.keys( dat[ conts[0] ]['data_cases'] )
+    var genders = Object.keys( dat[ conts[0] ]['data_cases'][ regs[0] ] )
+    var ops = Object.keys( dat[ conts[0] ]['data_cases'][ regs[0] ][ genders[0] ] )
+    var htmls = ""
+    ops.forEach( e => htmls += `<option value="${e}">${e}</option>` )
+    document.getElementById(ide).innerHTML = htmls
+}
+
+/** 
+* Plot heatmap of cases number along the years by age group
+*
+* @param {string} continent Continent
+* @param {string} registry Registry
+* @param {string} gender Gender
+* @param {string} cancer Cancer
+* @param {Object} dat CI5 data object
+* @param {string} ide Tag identifier
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.plotAgeByYearCancerIncidence( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v, 'summary_plot_lexis')
+*/
+iarc.plotAgeByYearCancerIncidence = function (continent, registry, gender, cancer, dat, ide){
+    var obj = dat[continent]['data_cases'][registry][gender][cancer]
+    var years_y = Object.keys( obj )
+    var age_groups_x = Object.keys( obj[ years_y[0] ] ).slice(1)
+    var z = []
+    for( var y of years_y ){
+        z.push( Object.values( obj[ y ] ).slice(1) )
+    }
+    
+    var transz = []
+    for( var i=0; i<z[0].length; i++){
+        var aux = []
+        for( var j=0; j<z.length; j++){
+            aux.push( z[j][i] )
+        }
+        transz.push(aux)
+    }
+
+    //var data = [ {  z: z, text: z, x: age_groups_x, y: years_y, type: 'heatmap', hoverongaps: false } ];
+    var data = [ {  z: transz, text: transz, x: years_y, y: age_groups_x, type: 'heatmap', hoverongaps: false } ];
+    var layout = {
+        title: 'Cancer incidence by age group along the years',
+        /*
+        yaxis: { title: { text: 'Years' } },
+        xaxis: { title: { text: 'Age groups' } }
+        */
+        xaxis: { title: { text: 'Years' } },
+        yaxis: { title: { text: 'Age groups' } }
+    }
+    Plotly.newPlot(ide, data, layout);
+    
+    document.getElementById(ide).style.display='block'
+    
+}
+
+/** 
+* Save file for APC NIH analysis
+* 
+*
+* @param {string} continent Continent
+* @param {string} registry Registry
+* @param {string} gender Gender
+* @param {string} cancer Cancer
+* @param {Object} dat CI5 data object
+*
+* @returns {HTMLAnchorElement} HTML anchor (<a />) element with the click event fired.
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* iarc.exportAsApcToolInput( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v )
+*/
+iarc.exportAsApcToolInput = (continent, registry, gender, cancer, dat)=>{
+    var pops = dat[continent]['dict_population'][registry][gender]
+    var obj = dat[continent]['data_cases'][registry][gender][cancer]
+    var years_y = Object.keys( obj )
+    var age_groups_x = Object.keys( obj[ years_y[0] ] ).slice(1, -1)
+    
+    var trans = {}
+    for( var y of years_y ){
+        for (var x of age_groups_x) {
+            if( ! Object.keys(trans).includes(x) ){
+                trans[x]={ }
+            } 
+            
+            trans[x][y] = `${obj[y][x]},${pops[y][x]}`
+        }
+    }
+    
+    var sep = '';
+    var n = (years_y.length*2) - 1
+    for (var i=0; i<n; i++){
+        sep += ","
+    }
+    sep+='\n'
+    
+    var start = years_y[0]
+    var report = `Title: Cancer ${cancer} - Continent ${continent} - Cohort ${registry} - Gender ${gender}${sep}`
+    report += `"Description: dataset derived from iarc CI5"${sep}`
+    report += `Start Year: ${start}${sep}`
+    report += `Start Age: 0${sep}`
+    report += `Interval (Years): 1${sep}`
+    
+    for (var x of age_groups_x) {
+        var vals = Object.values( trans[x] )
+        if( vals.filter(e => e.includes(',0') ).length == 0 ){
+            report += vals.join(',') + '\n'
+        }
+    }
+    //console.log(report)
+    
+    return iarc.saveFile(report, 'apc_input.csv')
+}
+
+/** 
+* Open the file in download mode
+* 
+*
+* @param {string} x Text content
+* @param {string} filename Filename for exportation.
+*
+* @returns {HTMLAnchorElement} HTML anchor (<a />) element with the click event fired.
+* 
+* @example
+* var content = "example text"
+* var tagA = await iarc.saveFile(content, 'example.txt')
+*/
+iarc.saveFile = function(x,fileName) { 
+	var bb = new Blob([x]);
+   	var url = URL.createObjectURL(bb);
+	var a = document.createElement('a');
+   	a.href=url;
+   	a.download=fileName
+	a.click()
+	return a
+}
+
+/** 
 * Get a single combination of a cause with a dimension of organization
 * 
 *
@@ -62,7 +429,7 @@ iarc.causesBy=['countries','cancers','attributable','regions','preventable']
 * @example
 * let v = await iarc.causesGet('infections','regions')
 */
-iarc.causesGet= async (cause=iarc.causes[0],by=iarc.causesBy[0])=>{
+iarc.causesGet = async (cause=iarc.causes[0],by=iarc.causesBy[0])=>{
     let url = `https://gco.iarc.fr/causes/${cause}/data/${by}.json`
     console.log(url)
     try{
@@ -84,7 +451,7 @@ iarc.causesGet= async (cause=iarc.causes[0],by=iarc.causesBy[0])=>{
 * @example
 * let v = await iarc.causesGetAll()
 */
-iarc.causesGetAll= async function(cache=false){  // retrieve all causal data
+iarc.causesGetAll = async function(cache=false){  // retrieve all causal data
     let dt={}
     iarc.causes.forEach(async c=>{
         dt[c]={}
@@ -662,7 +1029,7 @@ iarc.scrapSourceMonoGraphLinks = async function(){
 * iarc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
 *
 */
-iarc.loadScript= async function(url){
+iarc.loadScript = async function(url){
 	console.log(`${url} loaded`)
     async function asyncScript(url){
         let load = new Promise((resolve,regect)=>{
