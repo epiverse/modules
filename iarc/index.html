@@ -72,20 +72,20 @@
                                     
                                     <div class="form-group col-10 mb-3" >
                                             <label class="fields mr-2" style="text-align: right;" >Continents:</label>
-                                            <select id="continent" class="form-control mr-3 fields" style="width: 200px !important" onchange="iarc.fillRegistryOptions( continent.value, datci, 'registry')" >  <option value="0" > Loading ... </option>  </select> 
+                                            <select id="continent" class="form-control mr-3 fields" style="width: 200px !important" onchange="iarc.fillRegistryOptions( continent.value, datci, 'registry'); plot_lexis()" >  <option value="0" > Loading ... </option>  </select> 
                                             
                                             <label class="fields mr-2" style="text-align: right; width: 250px !important" >Specific geographic locations: </label>
-                                            <select id="registry" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                            <select id="registry" class="form-control mr-3 fields" style="width: 200px !important"  onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
                                     </div>
                                     
                                     <div class="form-group col-10" >
                                             <label class="fields mr-2" style="text-align: right;" >Gender: </label>
-                                            <select id="gender" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                            <select id="gender" class="form-control mr-3 fields" style="width: 200px !important"   onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
                                             
                                             <label class="fields mr-2" style="text-align: right;" >Cancer type: </label>
-                                            <select id="cancer" class="form-control mr-3 fields" style="width: 200px !important" > <option value="0" > Loading ... </option> </select>
+                                            <select id="cancer" class="form-control mr-3 fields" style="width: 200px !important"   onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
                                             
-                                            <input class="btn btn-primary mr-2" type="button" id="cfilter" disabled onclick="plot_lexis()" value="Plot lexis diagram" />
+                                            <input class="btn btn-primary mr-2" style = "display: none;" type="button" id="cfilter" disabled onclick="plot_lexis()" value="Plot lexis diagram" />
                                             <input class="btn btn-secondary mr-2" type="button" id="cexport" disabled onclick="export_apc()" value="Export as APC input" />
                                     </div>
                                     
