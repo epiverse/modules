@@ -304,10 +304,10 @@ iarc.fillCancerOptions = async (dat, ide)=>{
 iarc.plotAgeByYearCancerIncidence = function (continent, registry, gender, cancer, dat, ide){
     var obj = dat[continent]['data_cases'][registry][gender][cancer]
     var years_y = Object.keys( obj )
-    var age_groups_x = Object.keys( obj[ years_y[0] ] ).slice(1)
+    var age_groups_x = Object.keys( obj[ years_y[0] ] ).slice(1, -1)
     var z = []
     for( var y of years_y ){
-        z.push( Object.values( obj[ y ] ).slice(1) )
+        z.push( Object.values( obj[ y ] ).slice(1, -1) )
     }
     
     var transz = []
@@ -320,9 +320,9 @@ iarc.plotAgeByYearCancerIncidence = function (continent, registry, gender, cance
     }
 
     //var data = [ {  z: z, text: z, x: age_groups_x, y: years_y, type: 'heatmap', hoverongaps: false } ];
-    var data = [ {  z: transz, text: transz, x: years_y, y: age_groups_x, type: 'heatmap', hoverongaps: false } ];
+    var data = [ {  z: transz, text: transz, x: years_y, y: age_groups_x, type: 'heatmap', colorscale: 'Portland', hoverongaps: false } ];
     var layout = {
-        title: 'Cancer incidence by age group along the years',
+        title: 'Lexis diagram',
         /*
         yaxis: { title: { text: 'Years' } },
         xaxis: { title: { text: 'Age groups' } }
