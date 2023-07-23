@@ -302,12 +302,21 @@ iarc.fillCancerOptions = async (dat, ide)=>{
 * iarc.plotAgeByYearCancerIncidence( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v, 'summary_plot_lexis')
 */
 iarc.plotAgeByYearCancerIncidence = function (continent, registry, gender, cancer, dat, ide){
+    var pops = dat[continent]['dict_population'][registry][gender]
     var obj = dat[continent]['data_cases'][registry][gender][cancer]
     var years_y = Object.keys( obj )
     var age_groups_x = Object.keys( obj[ years_y[0] ] ).slice(1, -1)
     var z = []
     for( var y of years_y ){
-        z.push( Object.values( obj[ y ] ).slice(1, -1) )
+        var vals = Object.values( pops[y] ).slice(1, -1)
+        var incs = Object.values( obj[ y ] ).slice(1, -1)
+        var rates = []
+        var i = 0
+        incs.forEach(e => {
+            rates.push( (e/vals[i]) * 100000 )
+            i+=1
+        } )
+        z.push( rates )
     }
     
     var transz = []
