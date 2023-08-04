@@ -46,6 +46,9 @@ init().then( (value) => {
 } )
 
 function updateAnalysisPanel(){
+    cfilter.disabled=true
+    cfilter.value='Updating ...'
+    
     var co = continent.value
     var reg = registry.value
     var ge = gender.value
@@ -56,6 +59,9 @@ function updateAnalysisPanel(){
     updateApcStats(co, reg, ge, ca)
     performApcAnalysis()
     aggregateWaldTestTable()
+    
+    cfilter.disabled=false
+    cfilter.value='Update Analysis Panel'
 }
 
 function updateApcStats(co, reg, ge, ca){
