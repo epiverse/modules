@@ -20,30 +20,17 @@ df = iarc.getLongitudinalAgeRateRatio( dt, D, apcM )
 df = iarc.getCrossSectionalAgeCurve( dt, D, apcM )
 df = iarc.getLongitudinal2CrossSectionalAgeCurve( dt, D, apcM )
 df = iarc.getFittedTemporalTrends( dt, D, apcM )
+df = iarc.getPeriodRateRatio( dt, D, apcM )
+df = iarc.getCohortRateRatio( dt, D, apcM )
+df = iarc.getFittedCohortPatternRate( dt, D, apcM )
+df = iarc.getLocalDrfts( dt, D, apcM )
 
 iarc.vizDatatableStats(df, 'apc_table')
 iarc.vizPlotStats(df, 'apc_plot')
+      
+*/
 
-# ----- lab ------
-B = apcM.B
-s2VAR = apcM.s2VAR
-A = dt.a.length
-P = dt.p.length
-C = dt.c.length
-
-c0 = dt.Rvals[2]
-c0LOC = c.indexOf(c0)
-
-    var dtwt = { 'name': 'All Cohort Deviations = 0' }
-    var wt = {}
-    p1 = math.transpose( b.slice(1, C-1) )
-    var p2 = solveSystem( v.slice(1, C-1).map( e => e.slice(1, C-1)), b.slice(1, C-1) )
-    wt['x2'] = math.multiply( p1, p2 )[0][0]
-    wt["df"] = C-2
-    wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
-    dtwt['datatable'] = wt
-
-iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
+iarc.getLocalDrfts = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -58,18 +45,208 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     var p0 = dt.Rvals[1]
     var p0LOC = p.indexOf(p0)
     
-    var indexes = [ 0, 2 ].concat( D.Pt[4].map( e => e-1) ).concat( D.Pt[3].map( e => e-1) )
+    var C = dt.c.length
+    var c = dt.c
+    var c0 = dt.Rvals[2]
+    var c0LOC = c.indexOf(c0)
     
-    D.XPT = [  ]
-    var p1 = getUnitVector(P)
-    var p2 = p.map( e => e - p0 )
-    var p3 = D.XPD
-    var p4 = math.multiply( math.transpose( [ getUnitVector(P) ] ), [ D.XAD[a0LOC] ] ) 
-    p1.forEach( (e, i) => { D.XPT.push( [ p1[i], p2[i] ].concat( p3[i] ).concat( p4[i] ) ) })
+    // ------- Begin - rebuild xcd
+    var Xc = math.transpose( [ getUnitVector(C), c.map( e => e - c0 ) ] )
+    var tmp = dt.data.slice(1).map( e => e[2] )
+    tmp.sort( (a, b) => a-b )
+    tmp = Array.from( new Set(tmp) )
+    tmp = tmp.map( e => dt.data.slice(1).map(f => f[2]).filter( f => f==e).length )
+    var W = math.transpose( [tmp] )
+    var WXc = math.multiply( W, [ math.transpose( getUnitVector(2) ) ] )
+    var temp = []
+    WXc.forEach( (e, i) => { 
+        var aux = []
+        e.forEach( (f, j) => {
+            aux.push( WXc[i][j] * Xc[i][j] )
+        })
+        temp.push(aux)
+    })
+    WXc = temp
+    
+    var p1 = math.multiply( math.transpose(Xc), WXc)
+    var Rwc = solveSystem( p1, math.transpose(WXc) )
+    var P1 = getUnitDiagMatrix(C)
+    var p2 = math.multiply(Xc, Rwc)
+    temp = []
+    P1.forEach( (e,i) => {
+        var aux = [] 
+        e.forEach( (f,j) => {
+            aux.push( P1[i][j] - p2[i][j] )
+        } )
+        temp.push(aux)
+    } )
+    P1 = temp
+    D.XCD = math.multiply( P1, D.XCD )
+    // -------- end - rebuild xcd
+    
+    var last = Array.from( D.XCD.slice(-1)[0] )
+    last = last.concat( [1] )
+    var XCB = Array.from(D.XCD)
+    XCB = D.XCD.map( (e, i) => XCB[i].concat( [0] ) )
+    XCB.push( last.map( (e, j) => (j==last.length-1) ? 1 : 0 ) )
+    
+    var x = p.map( e => e - mean(p) )
+    var DELTA = math.floor(P/2)
+    var MESH = p[1]-p[0]
+    var odd = P%2
+    var BANG = (MESH*MESH)*0.5*((4/3)*(DELTA-1)*DELTA*(DELTA+1) + DELTA)
+    if(odd==1){
+        BANG = (MESH*MESH)*2*(1/6)*DELTA*(DELTA+1)*(2*DELTA+1)
+    }
+    var x_ = x.map( e => (1/BANG) * e )
+    
+    var K = []
+    for( var i=0; i<A; i++){
+        var start = (1+A-i)-2
+        var end = start+(P-1)
+        
+        var aux = []
+        var ki=0
+        for( var j=0; j<C; j++){
+            aux.push(0)
+            if( j>=start && j<=end ){
+                aux[ aux.length-1 ] = x_[ki]
+                ki+=1
+            }
+        }
+        K.push(aux)
+    }
+    
+    var CM = K.map( e => Array.from(e).concat( [1] ) )
+    
+    var indexes = D.Pt[5].map( e => e-1 ).concat( [2] )
     
     p2 = []
     indexes.forEach( e => p2.push( B[e][0] ) )
-    var b = math.multiply( D.XPT, p2 )
+    var g = math.multiply( XCB, math.transpose( [ p2 ] ) )
+    
+    p2 = []
+    indexes.forEach( e => { 
+        var aux = []
+        indexes.forEach( f => { 
+            aux.push( s2VAR[e][f] )
+        })
+        p2.push( aux ) 
+    })
+    
+    p1 = math.multiply( XCB, p2 )
+    var v = math.multiply( p1, math.transpose( XCB) )
+    var b = math.multiply( CM, g )
+    p1 = math.multiply( CM, v )
+    var vld = math.multiply( p1, math.transpose(CM) )
+    var s = math.diag(vld).map( e => math.sqrt(e) )
+    b = b.map( e => e[0] )
+    
+    var dte = []
+    b.forEach( (e, i) => { dte.push( [ a[i], 100*( math.exp( b[i] ) - 1), 100*(math.exp( b[i] - (1.96 * s[i]) ) - 1), 100*(math.exp( b[i] + (1.96 * s[i]) ) - 1), a[i], 100*( math.exp( b[i] ) - 1), 100*(math.exp( b[i] - (1.96 * s[i]) ) - 1), 100*(math.exp( b[i] + (1.96 * s[i]) ) - 1) ] ) })
+    
+    var colNames = ["Age", "Percent per Year", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
+    var df = []
+    dte.forEach( (e, i) => { 
+        var vals = {}
+        dte[i].forEach( (f, j) => { vals[ colNames[j] ] = dte[i][j] } )
+        df.push(vals)
+    } )
+    
+    var dtwt = { 'name': 'All Local Drifts = Net Drift' }
+    var wt = {}
+    
+    var CM0 = Array.from(CM)
+    var index = CM0.length-1
+    CM.forEach( (e, i) => { CM0[i][index] = 0 })
+    var EDiff = math.multiply( CM0, g )
+    p1 = math.multiply( CM0, v )
+    var VDiff = math.multiply( p1, math.transpose(CM0) )
+    wt["df"] = getMatRank( VDiff )
+    
+    p1 = math.transpose( EDiff.slice(0, wt["df"] ) )
+    var p2 = solveSystem( VDiff.slice(0, wt["df"] ).map( e => e.slice(0, wt["df"]) ), EDiff.slice(0, wt["df"] ) )
+    wt['X2'] = math.multiply( p1, p2 )[0][0]
+    wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
+    dtwt['datatable'] = wt
+    
+    var nd = iarc.getNetDrift( apcM ) 
+    var abls = nd.datatable
+    var res = {  'title_x': "Age", "title_y": "Percent per Year", "abline_y": [  { 'type': 'dot', 'width': 1, 'y': abls['CI Lo'] } , { 'width': 1, 'y': abls['Net Drift (%/year)'] }, { 'type': 'dot', 'width': 1, 'y': abls['CI Hi'] }  ] }
+    res['name'] = 'Local Drifts with Net Drift'
+    res['datatable'] = df
+    res['waldTest'] = dtwt
+    
+    return res
+}
+
+iarc.getFittedCohortPatternRate = ( dt, D, apcM ) => {
+    
+    var B = apcM.B
+    var s2VAR = apcM.s2VAR
+    
+    var A = dt.a.length
+    var a = dt.a
+    var a0 = dt.Rvals[0]
+    var a0LOC = a.indexOf(a0)
+    
+    var P = dt.p.length
+    var p = dt.p
+    var p0 = dt.Rvals[1]
+    var p0LOC = p.indexOf(p0)
+    
+    var C = dt.c.length
+    var c = dt.c
+    var c0 = dt.Rvals[2]
+    var c0LOC = c.indexOf(c0)
+    
+    // ------- Begin - rebuild xcd
+    var Xc = math.transpose( [ getUnitVector(C), c.map( e => e - c0 ) ] )
+    var tmp = dt.data.slice(1).map( e => e[2] )
+    tmp.sort( (a, b) => a-b )
+    tmp = Array.from( new Set(tmp) )
+    tmp = tmp.map( e => dt.data.slice(1).map(f => f[2]).filter( f => f==e).length )
+    var W = math.transpose( [tmp] )
+    var WXc = math.multiply( W, [ math.transpose( getUnitVector(2) ) ] )
+    var temp = []
+    WXc.forEach( (e, i) => { 
+        var aux = []
+        e.forEach( (f, j) => {
+            aux.push( WXc[i][j] * Xc[i][j] )
+        })
+        temp.push(aux)
+    })
+    WXc = temp
+    
+    var p1 = math.multiply( math.transpose(Xc), WXc)
+    var Rwc = solveSystem( p1, math.transpose(WXc) )
+    var P1 = getUnitDiagMatrix(C)
+    var p2 = math.multiply(Xc, Rwc)
+    temp = []
+    P1.forEach( (e,i) => {
+        var aux = [] 
+        e.forEach( (f,j) => {
+            aux.push( P1[i][j] - p2[i][j] )
+        } )
+        temp.push(aux)
+    } )
+    P1 = temp
+    D.XCD = math.multiply( P1, D.XCD )
+    // -------- end - rebuild xcd
+    
+    var indexes = [ 0, 2 ].concat( D.Pt[5].map( e => e-1) ).concat( D.Pt[3].map( e => e-1) )
+    
+    D.XCT = [  ]
+    var p1 = getUnitVector(C)
+    var p2 = c.map( e => e - c0 )
+    var p3 = D.XCD 
+    var p4 = math.multiply( math.transpose([ p1 ]), [ D.XAD[a0LOC] ] ) 
+    p1.forEach( (e, i) => { D.XCT.push( [ p1[i], p2[i] ].concat( p3[i] ).concat( p4[i] ) ) })
+    
+    p2 = []
+    indexes.forEach( e => p2.push( B[e][0] ) )
+    var lot = math.log( dt.offset_tick )
+    var b = math.multiply( D.XCT, p2 )
     b = b.map( e => lot + e )
     
     p2 = []
@@ -81,15 +258,14 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
         p2.push( aux ) 
     })
     
-    p1 = math.multiply( D.XPT, p2 )
-    var ftv = math.multiply( p1, math.transpose( D.XPT ) )
-    var s = math.diag(ftv).map( e => math.sqrt(e) )
+    p1 = math.multiply( D.XCT, p2 )
+    var vcr = math.multiply( p1, math.transpose( D.XCT ) )
+    var s = math.diag(vcr).map( e => math.sqrt(e) )
     
     var dte = []
-    b.forEach( (e, i) => { dte.push( [ p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
+    b.forEach( (e, i) => { dte.push( [ c[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), c[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
     
-    var colNames = ["Period", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
-    
+    var colNames = ["Cohort", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
     var df = []
     dte.forEach( (e, i) => { 
         var vals = {}
@@ -97,80 +273,223 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
         df.push(vals)
     } )
     
+    var dtwt = { 'name': 'All Cohort RR = 1' }
+    var wt = {}
+    p1 = [ b.filter( (e, i) => i != c0LOC ) ]
+    var p2 = solveSystem( vcr.filter( (e, i) => i != c0LOC ).map( e => e.filter( (e, i) => i != c0LOC ) ), math.transpose( [ b.filter( (e, i) => i != c0LOC ) ] ) )
+    wt['X2'] = math.multiply( p1, p2 )[0][0]
+    wt["df"] = C-1
+    wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
+    dtwt['datatable'] = wt
+    
     var res = {  'title_x': "Period", "title_y": "Rate", "abline_y": [] }
-    res['name'] = 'Fitted Temporal Trends'
+    res['name'] = 'Fitted Cohort Pattern centered on the reference age'
     res['datatable'] = df
+    res['waldTest'] = dtwt
     
     return res
 }
 
---------------------------
-
-  #
-  # (8) Period Rate Ratios
-  #
-  Xp <- cbind(matrix(1,P), p-p0, D$XPD)
-  TMP <- diag(0,nrow=P)
-  TMP[, is.element(p, p0)] <- 1
-  PRR <- diag(P) - TMP
-  D$XPR <- PRR%*%Xp
-  pr <- D$XPR%*%B[c(1, 3, D$Pt[[5]])]
-  vpr <- D$XPR%*%s2VAR[c(1, 3, D$Pt[[5]]), c(1, 3, D$Pt[[5]])]%*%t(D$XPR)
-  sd <- matrix(sqrt(diag(vpr)))
-  ci <- cbind(pr - 1.96*sd, pr + 1.96*sd)
-  epr <- exp(pr)
-  eci <- exp(ci)
-  PeriodRR <- cbind(p, epr, eci)
-  dimnames(PeriodRR) <- list(c(), c("Period", "Rate Ratio", "CILo", "CIHi"))
-  
-  # Wald test - any PRR different from 1?
-  I <- 1:P
-  INC8 <- I[!is.element(p,p0)]
-  X28 <- t(matrix(pr[INC8]))%*%solve(vpr[INC8,INC8], matrix(pr[INC8]))
-  df8 <- P - 1
-  PVAL8 <- pchisq(X28, df8, lower.tail = FALSE)
-  
-  #
-  # (9) Cohort Rate Ratios
-  #
-  c0 <- PVP$RVals[3]
-  Xc <- cbind(matrix(1,C), c-c0, D$XCD)
-  TMP <- diag(0,nrow=C)
-  TMP[, is.element(c, c0)] <- 1
-  CRR <- diag(C) - TMP
-  D$XCR <- CRR%*%Xc
-  cr <- D$XCR%*%B[c(1, 3, D$Pt[[6]])]
-  vcr <- D$XCR%*%s2VAR[c(1, 3, D$Pt[[6]]), c(1, 3, D$Pt[[6]])]%*%t(D$XCR)
-  sd <- matrix(sqrt(diag(vcr)))
-  ci <- cbind(cr - 1.96*sd, cr + 1.96*sd)
-  ecr <- exp(cr)
-  eci <- exp(ci)
-  CohortRR <- cbind(c, ecr, eci)
-  dimnames(CohortRR) <- list(c(), c("Cohort", "Rate Ratio", "CILo", "CIHi"))
-  
-  # Wald test - any CRR different from 1?
-  I <- 1:C
-  INC9 <- I[!is.element(c,c0)]
-  X29 <- t(matrix(cr[INC9]))%*%solve(vcr[INC9,INC9], matrix(cr[INC9]))
-  df9 <- C - 1
-  PVAL9 <- pchisq(X29, df9, lower.tail = FALSE)
-  
-  #
-  # (9b) Fitted Cohort Pattern centered on the reference age
-  #
-  D$XCT <- cbind(matrix(1,C), c-c0, D$XCD, matrix(1,C)%*%D$XAD[a0LOC,])
-  fcp <- lot + D$XCT%*%B[c(1, 3, D$Pt[[6]], D$Pt[[4]])]
-  vcp <- D$XCT%*%s2VAR[c(1, 3, D$Pt[[6]], D$Pt[[4]]), c(1, 3, D$Pt[[6]], D$Pt[[4]])]%*%t(D$XCT)
-  sd <- matrix(sqrt(diag(vcp)))
-  ci <- cbind(fcp - 1.96*sd, fcp + 1.96*sd)
-  efcp <- exp(fcp)
-  eci <- exp(ci)
-  FittedCohortPattern <- cbind(c, efcp, eci)
-  dimnames(FittedCohortPattern) <- list(c(), c("Cohort", "Rate", "CILo", "CIHi"))
-  
-  
+iarc.getCohortRateRatio = ( dt, D, apcM ) => {
     
-*/
+    var B = apcM.B
+    var s2VAR = apcM.s2VAR
+    
+    var A = dt.a.length
+    var a = dt.a
+    var a0 = dt.Rvals[0]
+    var a0LOC = a.indexOf(a0)
+    
+    var P = dt.p.length
+    var p = dt.p
+    var p0 = dt.Rvals[1]
+    var p0LOC = p.indexOf(p0)
+    
+    var C = dt.c.length
+    var c = dt.c
+    var c0 = dt.Rvals[2]
+    var c0LOC = c.indexOf(c0)
+    
+    // ------- Begin - rebuild xcd
+    var Xc = math.transpose( [ getUnitVector(C), c.map( e => e - c0 ) ] )
+    var tmp = dt.data.slice(1).map( e => e[2] )
+    tmp.sort( (a, b) => a-b )
+    tmp = Array.from( new Set(tmp) )
+    tmp = tmp.map( e => dt.data.slice(1).map(f => f[2]).filter( f => f==e).length )
+    var W = math.transpose( [tmp] )
+    var WXc = math.multiply( W, [ math.transpose( getUnitVector(2) ) ] )
+    var temp = []
+    WXc.forEach( (e, i) => { 
+        var aux = []
+        e.forEach( (f, j) => {
+            aux.push( WXc[i][j] * Xc[i][j] )
+        })
+        temp.push(aux)
+    })
+    WXc = temp
+    
+    var p1 = math.multiply( math.transpose(Xc), WXc)
+    var Rwc = solveSystem( p1, math.transpose(WXc) )
+    var P1 = getUnitDiagMatrix(C)
+    var p2 = math.multiply(Xc, Rwc)
+    temp = []
+    P1.forEach( (e,i) => {
+        var aux = [] 
+        e.forEach( (f,j) => {
+            aux.push( P1[i][j] - p2[i][j] )
+        } )
+        temp.push(aux)
+    } )
+    P1 = temp
+    D.XCD = math.multiply( P1, D.XCD )
+    // -------- end - rebuild xcd
+    
+    var indexes = [ 0, 2 ].concat( D.Pt[5].map( e => e-1) )
+    
+    Xc = [  ]
+    var p1 = getUnitVector(C)
+    var p2 = c.map( e => e - c0 )
+    var p3 = D.XCD 
+    p1.forEach( (e, i) => { Xc.push( [ p1[i], p2[i] ].concat( p3[i] ) ) })
+    
+    var temp = getUnitDiagMatrix(C)
+    var CRR = []
+    for( var i=0; i<C; i++ ){
+        var aux = []
+        for( var j=0; j<C; j++ ){
+            var val = ( j==c0LOC ) ? 1 : 0
+            aux.push( temp[i][j] - val )
+        }
+        CRR.push(aux)
+    }
+    D.XCR = math.multiply( CRR, Xc )
+    
+    p2 = []
+    indexes.forEach( e => p2.push( B[e][0] ) )
+    var b = math.multiply( D.XCR, p2 )
+    
+    p2 = []
+    indexes.forEach( e => { 
+        var aux = []
+        indexes.forEach( f => { 
+            aux.push( s2VAR[e][f] )
+        })
+        p2.push( aux ) 
+    })
+    
+    p1 = math.multiply( D.XCR, p2 )
+    var vcr = math.multiply( p1, math.transpose( D.XCR ) )
+    var s = math.diag(vcr).map( e => math.sqrt(e) )
+    
+    var dte = []
+    b.forEach( (e, i) => { dte.push( [ c[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), c[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
+    
+    var colNames = ["Cohort", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
+    var df = []
+    dte.forEach( (e, i) => { 
+        var vals = {}
+        dte[i].forEach( (f, j) => { vals[ colNames[j] ] = dte[i][j] } )
+        df.push(vals)
+    } )
+    
+    var dtwt = { 'name': 'All Cohort RR = 1' }
+    var wt = {}
+    p1 = [ b.filter( (e, i) => i != c0LOC ) ]
+    var p2 = solveSystem( vcr.filter( (e, i) => i != c0LOC ).map( e => e.filter( (e, i) => i != c0LOC ) ), math.transpose( [ b.filter( (e, i) => i != c0LOC ) ] ) )
+    wt['X2'] = math.multiply( p1, p2 )[0][0]
+    wt["df"] = C-1
+    wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
+    dtwt['datatable'] = wt
+    
+    var res = {  'title_x': "Period", "title_y": "Rate Ratio", "abline_y": [  { 'type': 'dash', 'y': 1 }  ] }
+    res['name'] = 'Period Rate Ratio'
+    res['datatable'] = df
+    res['waldTest'] = dtwt
+    
+    return res
+}
+
+iarc.getPeriodRateRatio = ( dt, D, apcM ) => {
+    
+    var B = apcM.B
+    var s2VAR = apcM.s2VAR
+    
+    var A = dt.a.length
+    var a = dt.a
+    var a0 = dt.Rvals[0]
+    var a0LOC = a.indexOf(a0)
+    
+    var P = dt.p.length
+    var p = dt.p
+    var p0 = dt.Rvals[1]
+    var p0LOC = p.indexOf(p0)
+    
+    var indexes = [ 0, 2 ].concat( D.Pt[4].map( e => e-1) )
+    
+    Xp = [  ]
+    var p1 = getUnitVector(P)
+    var p2 = p.map( e => e - p0 )
+    var p3 = D.XPD 
+    p1.forEach( (e, i) => { Xp.push( [ p1[i], p2[i] ].concat( p3[i] ) ) })
+    
+    var index = p.indexOf(p0)
+    var temp = getUnitDiagMatrix(P)
+    var PRR = []
+    for( var i=0; i<P; i++ ){
+        var aux = []
+        for( var j=0; j<P; j++ ){
+            var val = ( j==index ) ? 1 : 0
+            aux.push( temp[i][j] - val )
+        }
+        PRR.push(aux)
+    }
+    
+    D.XPR = math.multiply( PRR, Xp )
+    
+    p2 = []
+    indexes.forEach( e => p2.push( B[e][0] ) )
+    var b = math.multiply( D.XPR, p2 )
+    
+    p2 = []
+    indexes.forEach( e => { 
+        var aux = []
+        indexes.forEach( f => { 
+            aux.push( s2VAR[e][f] )
+        })
+        p2.push( aux ) 
+    })
+    
+    p1 = math.multiply( D.XPR, p2 )
+    var vpr = math.multiply( p1, math.transpose( D.XPR ) )
+    var s = math.diag(vpr).map( e => math.sqrt(e) )
+    
+    var dte = []
+    b.forEach( (e, i) => { dte.push( [ p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
+    
+    var colNames = ["Period", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
+    var df = []
+    dte.forEach( (e, i) => { 
+        var vals = {}
+        dte[i].forEach( (f, j) => { vals[ colNames[j] ] = dte[i][j] } )
+        df.push(vals)
+    } )
+    
+    var dtwt = { 'name': 'All Period RR = 1' }
+    var wt = {}
+    p1 = [ b.filter( (e, i) => i != p0LOC ) ]
+    var p2 = solveSystem( vpr.filter( (e, i) => i != p0LOC ).map( e => e.filter( (e, i) => i != p0LOC ) ), math.transpose( [ b.filter( (e, i) => i != p0LOC ) ] ) )
+    wt['X2'] = math.multiply( p1, p2 )[0][0]
+    wt["df"] = P-1
+    wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
+    dtwt['datatable'] = wt
+    
+    var res = {  'title_x': "Period", "title_y": "Rate Ratio", "abline_y": [  { 'type': 'dash', 'y': 1 }  ] }
+    res['name'] = 'Period Rate Ratio'
+    res['datatable'] = df
+    res['waldTest'] = dtwt
+    
+    return res
+}
 
 iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     
@@ -1156,7 +1475,21 @@ iarc.vizPlotStats = (dt, idContainer) => {
     if( Object.keys(dt).includes('abline_y') ){
         if(dt.abline_y.length > 0){
             dt.abline_y.forEach( e => {
-                shapes.push( { type: 'line', xref: 'paper', x0: 0, y0: e.y, x1: max(x), y1: e.y, line:{ color: 'rgb(0, 0, 0)', width: 2, dash: e.type } } )
+                var wdt = 2
+                var type = ''
+                if( Object.keys(dt).includes( 'width' ) ){
+                    wdt = e.width;
+                }
+                if( Object.keys(dt).includes( 'type' ) ){
+                    type = e.type;
+                }
+                
+                var obj = { type: 'line', xref: 'paper', x0: 0, y0: e.y, x1: max(x), y1: e.y, line:{ color: 'rgb(0, 0, 0)', width: wdt } }
+                if(type!=''){
+                    obj.line['dash'] = type
+                }
+                
+                shapes.push( obj )
             } )
         }
     }

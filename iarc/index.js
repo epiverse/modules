@@ -67,12 +67,12 @@ function updateApcStats(co, reg, ge, ca){
 }
 
 function performApcAnalysis(){
-    fr = iarc.getFittedRates( apc.s, apc.dt, apc.D, apc.apcM )
+    var fr = iarc.getFittedRates( apc.s, apc.dt, apc.D, apc.apcM )
     
-    coefs = iarc.getCoefficients( apc.s, apc.dt, apc.D, apc.apcM  )
+    var coefs = iarc.getCoefficients( apc.s, apc.dt, apc.D, apc.apcM  )
     iarc.vizDatatableStats(coefs, 'coefficients')
     
-    nd = iarc.getNetDrift( apc.apcM ) 
+    var nd = iarc.getNetDrift( apc.apcM ) 
     iarc.vizDatatableStats(nd, 'netdrift')
     
     var action = apc_analysis.value
@@ -83,7 +83,7 @@ function performApcAnalysis(){
 }
 
 function aggregateWaldTestTable(){
-    var features = ['getCoefficients', 'getAgeDeviations', 'getPeriodDeviations', 'getCohortDeviations']
+    var features = ['getCoefficients', 'getAgeDeviations', 'getPeriodDeviations', 'getCohortDeviations', 'getPeriodRateRatio', 'getCohortRateRatio', 'getLocalDrfts']
     var paramExtra = ''
     
     var dtwt = { 'name': 'Wald Tests', 'datatable': {} }
@@ -99,7 +99,6 @@ function aggregateWaldTestTable(){
         dtwt.datatable[ df.waldTest.name ] = df.waldTest.datatable
         
     }
-    console.log(dtwt)
     
     iarc.vizDatatableStats(dtwt, 'waldtests')
 }
