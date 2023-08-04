@@ -8,11 +8,16 @@
         
         <script src="iarc.js"></script>
         
+        <script src="stats_apc.js"></script>
+        <script src="ytliu0_statFunctions.js"></script>
+        <script src="https://d3js.org/d3.v4.js"></script>
+        
         <script src="../gendoc.js"></script>
         <link rel="stylesheet" href="../gendoc.css">
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
         
+
         <style>
             .fields{
                 width: 100px !important; 
@@ -72,25 +77,74 @@
                                     
                                     <div class="form-group col-10 mb-3" >
                                             <label class="fields mr-2" style="text-align: right;" >Continents:</label>
-                                            <select id="continent" class="form-control mr-3 fields" style="width: 200px !important" onchange="iarc.fillRegistryOptions( continent.value, datci, 'registry'); plot_lexis()" >  <option value="0" > Loading ... </option>  </select> 
+                                            <select id="continent" class="form-control mr-3 fields" style="width: 200px !important" onchange="iarc.fillRegistryOptions( continent.value, datci, 'registry'); updateAnalysisPanel()" >  <option value="0" > Loading ... </option>  </select> 
                                             
                                             <label class="fields mr-2" style="text-align: right; width: 250px !important" >Specific geographic locations: </label>
-                                            <select id="registry" class="form-control mr-3 fields" style="width: 200px !important"  onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
+                                            <select id="registry" class="form-control mr-3 fields" style="width: 200px !important"  onchange=" updateAnalysisPanel()" > <option value="0" > Loading ... </option> </select>
                                     </div>
                                     
-                                    <div class="form-group col-10" >
+                                    <div class="form-group col-10 mb-4" >
                                             <label class="fields mr-2" style="text-align: right;" >Gender: </label>
-                                            <select id="gender" class="form-control mr-3 fields" style="width: 200px !important"   onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
+                                            <select id="gender" class="form-control mr-3 fields" style="width: 200px !important"   onchange=" updateAnalysisPanel()" > <option value="0" > Loading ... </option> </select>
                                             
                                             <label class="fields mr-2" style="text-align: right;" >Cancer type: </label>
-                                            <select id="cancer" class="form-control mr-3 fields" style="width: 200px !important"   onchange=" plot_lexis()" > <option value="0" > Loading ... </option> </select>
+                                            <select id="cancer" class="form-control mr-3 fields" style="width: 420px !important"   onchange=" updateAnalysisPanel()" > <option value="0" > Loading ... </option> </select>
                                             
-                                            <input class="btn btn-primary mr-2" style = "display: none;" type="button" id="cfilter" disabled onclick="plot_lexis()" value="Plot lexis diagram" />
+                                            <input class="btn btn-primary mr-2" style = "display: none;" type="button" id="cfilter" disabled onclick="updateAnalysisPanel()" value="Plot lexis diagram" />
                                             <input class="btn btn-secondary mr-2" type="button" id="cexport" disabled onclick="export_apc()" value="Export as APC input" />
                                     </div>
                                     
-                                    <p>* Lexis diagram values are normalized according to  (cases / population) *100000 (inhabitants) </p>
-                                    <div class="col-6"  id="summary_plot_lexis" style="min-height: 800px;" > </div>
+                                    <div class="row" >
+                                        <div class="col-md-6 col-lg-5 " >
+                                            <div class="card shadow-sm mb-3 bg-light" >
+                                                <div class="card-body" >
+                                                    <div class="mb-3" id="coefficients" > </div>
+                                                    <div class="mb-3" id="netdrift" > </div>
+                                                    <div class="mb-3" id="waldtests" > </div>
+                                                
+                                                    <div class = "col-md-12" >
+                                                        <div class="row">
+                                                          <div class="col">
+                                                            <h5> Lexis Diagram </h5>
+                                                            <p>* Values are normalized according to (cases / population) *100000 (inhabitants) </p>
+                                                          </div>
+                                                        </div>
+                                                        
+                                                        <div class="col-12"  id="summary_plot_lexis" style="min-height: 800px;" > </div>
+                                                    </div>
+                                                    
+                                                 </div> 
+                                             </div>   
+                                        </div>
+                                        
+                                        <div class="col-md-6 col-lg-7" >
+                                             <div class="card shadow-sm mb-3 bg-light" >
+                                                <div class="card-body" >
+                                                    <div class="row" >
+                                                        <div class="col-12" >
+                                                            <div class="form-group col-10 mb-4" >
+                                                                    <label class=" mr-2" style="text-align: right;" >Select the type of analysis: </label>
+                                                                    <select id="apc_analysis" class="form-control mr-3" onchange="performApcAnalysis()" > 
+                                                                        <option value="getAgeDeviations" > Age Deviations </option> 
+                                                                        <option value="getPeriodDeviations" > Period Deviations </option> 
+                                                                        <option value="getCohortDeviations" > Cohort Deviations </option> 
+                                                                        <option value="getLongitudinalAgeCurve" > Longitudinal Age Curve </option> 
+                                                                        <option value="getLongitudinalAgeRateRatio" > Longitudinal Age Rate Ratio </option> 
+                                                                        <option value="getCrossSectionalAgeCurve" > Cross-Sectional Age Rate Ratio </option> 
+                                                                        <option value="getLongitudinal2CrossSectionalAgeCurve" > Longitudinal to Cross-Sectional Age Rate Ratio </option> 
+                                                                    </select>
+                                                                    
+                                                                    <input class="btn btn-primary mr-2" style = "display: none;" type="button" id="afilter" disabled onclick="performApcAnalysis()" value="Perform APC analysis" />
+                                                            </div>
+                                                        
+                                                            <div class="mb-4" id="apc_plot"></div>
+                                                            <div id="apc_table"></div>
+                                                        </div>    
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 
                                 </div>
                             </div>

@@ -378,6 +378,19 @@ iarc.exportAsApcToolInput = (continent, registry, gender, cancer, dat)=>{
         }
     }
     
+    var temp = []
+    var i =0
+    var valid = Object.keys(trans).map( e => Object.values( trans[e] ).filter( f => f[1]!=0 ).length )
+    for( var v of valid ){
+        if(v!=0){
+            temp.push( age_groups_x[i] )
+        }
+        i+=1
+    }
+    age_groups_x = temp
+    
+    var start = years_y[0]
+    
     var sep = '';
     var n = (years_y.length*2) - 1
     for (var i=0; i<n; i++){
@@ -385,11 +398,10 @@ iarc.exportAsApcToolInput = (continent, registry, gender, cancer, dat)=>{
     }
     sep+='\n'
     
-    var start = years_y[0]
     var report = `Title: Cancer ${cancer} - Continent ${continent} - Cohort ${registry} - Gender ${gender}${sep}`
     report += `"Description: dataset derived from iarc CI5"${sep}`
     report += `Start Year: ${start}${sep}`
-    report += `Start Age: 0${sep}`
+    report += `Start Age: 1${sep}`
     report += `Interval (Years): 1${sep}`
     
     for (var x of age_groups_x) {
@@ -1064,5 +1076,10 @@ if(typeof(pdfjsLib)=="undefined"){
 if(typeof(d3)=="undefined"){
     iarc.loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.4/d3.min.js')
 }
+
+if(typeof(math)=="undefined"){
+    iarc.loadScript('https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.9.1/math.js')
+}
+
 
 

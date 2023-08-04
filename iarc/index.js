@@ -10,6 +10,8 @@ async function init(){
     return v
 }
 
+var apc = {}
+
 var datci = {}
 
 init().then( (value) => { 
@@ -37,19 +39,69 @@ init().then( (value) => {
             iarc.fillGenderOptions(datci, 'gender')
             iarc.fillCancerOptions(datci, 'cancer')
             
-            plot_lexis()
+            updateAnalysisPanel()
         }, 10000);
         
     })
 } )
 
-function plot_lexis(){
+function updateAnalysisPanel(){
     var co = continent.value
     var reg = registry.value
     var ge = gender.value
     var ca = cancer.value
     
     iarc.plotAgeByYearCancerIncidence (co, reg, ge, ca, datci, 'summary_plot_lexis')
+    
+    updateApcStats(co, reg, ge, ca)
+    performApcAnalysis()
+    aggregateWaldTestTable()
+}
+
+function updateApcStats(co, reg, ge, ca){
+    //apc['s'] = iarc.formatData( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', datci )
+    apc['s'] = iarc.formatData(co, reg, ge, ca, datci)
+    apc['dt'] = iarc.makeInputDataApcAnalysis( apc.s, 1, 10**5, 0.1)
+    apc['D'] = iarc.makeDesignMatrix( apc.dt )
+    apc['apcM'] = iarc.apcfit( apc.dt, apc.D.X)
+}
+
+function performApcAnalysis(){
+    fr = iarc.getFittedRates( apc.s, apc.dt, apc.D, apc.apcM )
+    
+    coefs = iarc.getCoefficients( apc.s, apc.dt, apc.D, apc.apcM  )
+    iarc.vizDatatableStats(coefs, 'coefficients')
+    
+    nd = iarc.getNetDrift( apc.apcM ) 
+    iarc.vizDatatableStats(nd, 'netdrift')
+    
+    var action = apc_analysis.value
+    
+    eval( `var df = iarc.${action}( apc.dt, apc.D, apc.apcM )` )
+    iarc.vizDatatableStats(df, 'apc_table')
+    iarc.vizPlotStats(df, 'apc_plot')
+}
+
+function aggregateWaldTestTable(){
+    var features = ['getCoefficients', 'getAgeDeviations', 'getPeriodDeviations', 'getCohortDeviations']
+    var paramExtra = ''
+    
+    var dtwt = { 'name': 'Wald Tests', 'datatable': {} }
+    for (var action of features){
+        if(action=='getCoefficients'){
+            paramExtra = 'apc.s, '
+        }
+        else{
+            paramExtra = ''
+        }
+        
+        eval( `var df = iarc.${action}( ${paramExtra} apc.dt, apc.D, apc.apcM )` )
+        dtwt.datatable[ df.waldTest.name ] = df.waldTest.datatable
+        
+    }
+    console.log(dtwt)
+    
+    iarc.vizDatatableStats(dtwt, 'waldtests')
 }
 
 function export_apc(){
