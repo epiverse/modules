@@ -129,6 +129,46 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
   X28 <- t(matrix(pr[INC8]))%*%solve(vpr[INC8,INC8], matrix(pr[INC8]))
   df8 <- P - 1
   PVAL8 <- pchisq(X28, df8, lower.tail = FALSE)
+  
+  #
+  # (9) Cohort Rate Ratios
+  #
+  c0 <- PVP$RVals[3]
+  Xc <- cbind(matrix(1,C), c-c0, D$XCD)
+  TMP <- diag(0,nrow=C)
+  TMP[, is.element(c, c0)] <- 1
+  CRR <- diag(C) - TMP
+  D$XCR <- CRR%*%Xc
+  cr <- D$XCR%*%B[c(1, 3, D$Pt[[6]])]
+  vcr <- D$XCR%*%s2VAR[c(1, 3, D$Pt[[6]]), c(1, 3, D$Pt[[6]])]%*%t(D$XCR)
+  sd <- matrix(sqrt(diag(vcr)))
+  ci <- cbind(cr - 1.96*sd, cr + 1.96*sd)
+  ecr <- exp(cr)
+  eci <- exp(ci)
+  CohortRR <- cbind(c, ecr, eci)
+  dimnames(CohortRR) <- list(c(), c("Cohort", "Rate Ratio", "CILo", "CIHi"))
+  
+  # Wald test - any CRR different from 1?
+  I <- 1:C
+  INC9 <- I[!is.element(c,c0)]
+  X29 <- t(matrix(cr[INC9]))%*%solve(vcr[INC9,INC9], matrix(cr[INC9]))
+  df9 <- C - 1
+  PVAL9 <- pchisq(X29, df9, lower.tail = FALSE)
+  
+  #
+  # (9b) Fitted Cohort Pattern centered on the reference age
+  #
+  D$XCT <- cbind(matrix(1,C), c-c0, D$XCD, matrix(1,C)%*%D$XAD[a0LOC,])
+  fcp <- lot + D$XCT%*%B[c(1, 3, D$Pt[[6]], D$Pt[[4]])]
+  vcp <- D$XCT%*%s2VAR[c(1, 3, D$Pt[[6]], D$Pt[[4]]), c(1, 3, D$Pt[[6]], D$Pt[[4]])]%*%t(D$XCT)
+  sd <- matrix(sqrt(diag(vcp)))
+  ci <- cbind(fcp - 1.96*sd, fcp + 1.96*sd)
+  efcp <- exp(fcp)
+  eci <- exp(ci)
+  FittedCohortPattern <- cbind(c, efcp, eci)
+  dimnames(FittedCohortPattern) <- list(c(), c("Cohort", "Rate", "CILo", "CIHi"))
+  
+  
     
 */
 
@@ -158,6 +198,7 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     
     p2 = []
     indexes.forEach( e => p2.push( B[e][0] ) )
+    var lot = math.log( dt.offset_tick )
     var b = math.multiply( D.XPT, p2 )
     b = b.map( e => lot + e )
     
@@ -313,6 +354,7 @@ iarc.getCrossSectionalAgeCurve = ( dt, D, apcM ) => {
     var p5 = math.multiply( math.transpose( [ getUnitVector(A) ] ), [ D.XPD[p0LOC] ] ) 
     p1.forEach( (e, i) => { D.XXA.push( [ p1[i], p2[i], p3[i] ].concat( p4[i] ).concat( p5[i] ) ) })
     
+    var lot = math.log( dt.offset_tick )
     var b = math.multiply( D.XXA, B.filter( (e, i) => indexes.includes(i) ) )
     b = b.map( e => lot + e[0] )
     p1 = math.multiply( D.XXA, s2VAR.filter( (e, i) => indexes.includes(i) ).map( (e, i) => e.filter( (e, i) => indexes.includes(i) ) ) )
