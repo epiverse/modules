@@ -19,6 +19,7 @@ df = iarc.getLongitudinalAgeCurve( dt, D, apcM )
 df = iarc.getLongitudinalAgeRateRatio( dt, D, apcM )
 df = iarc.getCrossSectionalAgeCurve( dt, D, apcM )
 df = iarc.getLongitudinal2CrossSectionalAgeCurve( dt, D, apcM )
+df = iarc.getFittedTemporalTrends( dt, D, apcM )
 
 iarc.vizDatatableStats(df, 'apc_table')
 iarc.vizPlotStats(df, 'apc_plot')
@@ -42,7 +43,7 @@ c0LOC = c.indexOf(c0)
     wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
     dtwt['datatable'] = wt
 
-iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
+iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -50,62 +51,26 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
     var A = dt.a.length
     var a = dt.a
     var a0 = dt.Rvals[0]
+    var a0LOC = a.indexOf(a0)
     
     var P = dt.p.length
     var p = dt.p
     var p0 = dt.Rvals[1]
     var p0LOC = p.indexOf(p0)
     
-    var C = dt.c.length
-    var c = dt.c
-    var c0 = dt.Rvals[2]
-    var c0LOC = c.indexOf(c0)
+    var indexes = [ 0, 2 ].concat( D.Pt[4].map( e => e-1) ).concat( D.Pt[3].map( e => e-1) )
     
-    // ------- Begin - rebuild xcd
-    var Xc = math.transpose( [ getUnitVector(C), c.map( e => e - c0 ) ] )
-    var tmp = dt.data.slice(1).map( e => e[2] )
-    tmp.sort( (a, b) => a-b )
-    tmp = Array.from( new Set(tmp) )
-    tmp = tmp.map( e => dt.data.slice(1).map(f => f[2]).filter( f => f==e).length )
-    var W = math.transpose( [tmp] )
-    var WXc = math.multiply( W, [ math.transpose( getUnitVector(2) ) ] )
-    var temp = []
-    WXc.forEach( (e, i) => { 
-        var aux = []
-        e.forEach( (f, j) => {
-            aux.push( WXc[i][j] * Xc[i][j] )
-        })
-        temp.push(aux)
-    })
-    WXc = temp
-    
-    var p1 = math.multiply( math.transpose(Xc), WXc)
-    var Rwc = solveSystem( p1, math.transpose(WXc) )
-    var P1 = getUnitDiagMatrix(C)
-    var p2 = math.multiply(Xc, Rwc)
-    temp = []
-    P1.forEach( (e,i) => {
-        var aux = [] 
-        e.forEach( (f,j) => {
-            aux.push( P1[i][j] - p2[i][j] )
-        } )
-        temp.push(aux)
-    } )
-    P1 = temp
-    D.XCD = math.multiply( P1, D.XCD )
-    // -------- end - rebuild xcd
-    
-    var indexes = [ 2 ].concat( D.Pt[5].map( e => e-1) ).concat( D.Pt[4].map( e => e-1) )
-    
-    D.XLX = [  ]
-    var p1 = a.map( e => e - a0 )
-    var p2 = math.multiply( math.transpose( [ getUnitVector(A) ] ), [ D.XCD[c0LOC] ] ) 
-    var p3 = math.multiply( math.transpose( [ getUnitVector(A).map( e => -1*e ) ] ), [ D.XPD[p0LOC] ] ) 
-    p1.forEach( (e, i) => { D.XLX.push( [ p1[i]].concat( p2[i] ).concat( p3[i] ) ) })
+    D.XPT = [  ]
+    var p1 = getUnitVector(P)
+    var p2 = p.map( e => e - p0 )
+    var p3 = D.XPD
+    var p4 = math.multiply( math.transpose( [ getUnitVector(P) ] ), [ D.XAD[a0LOC] ] ) 
+    p1.forEach( (e, i) => { D.XPT.push( [ p1[i], p2[i] ].concat( p3[i] ).concat( p4[i] ) ) })
     
     p2 = []
     indexes.forEach( e => p2.push( B[e][0] ) )
-    var b = math.multiply( D.XLX, p2 )
+    var b = math.multiply( D.XPT, p2 )
+    b = b.map( e => lot + e )
     
     p2 = []
     indexes.forEach( e => { 
@@ -116,14 +81,14 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
         p2.push( aux ) 
     })
     
-    p1 = math.multiply( D.XLX, p2 )
-    var lcv = math.multiply( p1, math.transpose( D.XLX ) )
-    var s = math.diag(lcv).map( e => math.sqrt(e) )
+    p1 = math.multiply( D.XPT, p2 )
+    var ftv = math.multiply( p1, math.transpose( D.XPT ) )
+    var s = math.diag(ftv).map( e => math.sqrt(e) )
     
     var dte = []
-    b.forEach( (e, i) => { dte.push( [ a[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), a[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
+    b.forEach( (e, i) => { dte.push( [ p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
     
-    var colNames = ["Age", "Rate Ratio", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
+    var colNames = ["Period", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
     
     var df = []
     dte.forEach( (e, i) => { 
@@ -132,8 +97,8 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
         df.push(vals)
     } )
     
-    var res = {  'title_x': "Age", "title_y": "Rate Ratio", "abline_y": [] }
-    res['name'] = 'Ratio of Longitudinal-to-Cross-Sectional Age Curve'
+    var res = {  'title_x': "Period", "title_y": "Rate", "abline_y": [] }
+    res['name'] = 'Fitted Temporal Trends'
     res['datatable'] = df
     
     return res
@@ -141,22 +106,6 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
 
 --------------------------
 
-  #
-  # (7) Fitted Temporal Trends centered on reference age
-  #
-  
-  # a <- matrix(PVP$D$a)
-  # a0 <- PVP$RVals[1]
-  #a0LOC <- match(a0, a) # finds the index of a value in an array
-  
-  D$XPT <- cbind(matrix(1, P), p-p0, D$XPD, matrix(1,P)%*%D$XAD[a0LOC,])
-  ftt <- lot + D$XPT%*%B[c(1, 3, D$Pt[[5]], D$Pt[[4]])]
-  ftv <- D$XPT%*%s2VAR[c(1, 3, D$Pt[[5]], D$Pt[[4]]), c(1, 3, D$Pt[[5]], D$Pt[[4]])]%*%t(D$XPT)
-  fts <- matrix(sqrt(diag(ftv)))
-  ftc <- cbind(ftt - 1.96*fts, ftt + 1.96*fts)
-  FittedTemporalTrends <- cbind(p, exp(ftt), exp(ftc))
-  dimnames(FittedTemporalTrends) <- list(c(), c("Period", "Rate", "CILo", "CIHi"))
-  
   #
   # (8) Period Rate Ratios
   #
@@ -182,6 +131,67 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
   PVAL8 <- pchisq(X28, df8, lower.tail = FALSE)
     
 */
+
+iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
+    
+    var B = apcM.B
+    var s2VAR = apcM.s2VAR
+    
+    var A = dt.a.length
+    var a = dt.a
+    var a0 = dt.Rvals[0]
+    var a0LOC = a.indexOf(a0)
+    
+    var P = dt.p.length
+    var p = dt.p
+    var p0 = dt.Rvals[1]
+    var p0LOC = p.indexOf(p0)
+    
+    var indexes = [ 0, 2 ].concat( D.Pt[4].map( e => e-1) ).concat( D.Pt[3].map( e => e-1) )
+    
+    D.XPT = [  ]
+    var p1 = getUnitVector(P)
+    var p2 = p.map( e => e - p0 )
+    var p3 = D.XPD
+    var p4 = math.multiply( math.transpose( [ getUnitVector(P) ] ), [ D.XAD[a0LOC] ] ) 
+    p1.forEach( (e, i) => { D.XPT.push( [ p1[i], p2[i] ].concat( p3[i] ).concat( p4[i] ) ) })
+    
+    p2 = []
+    indexes.forEach( e => p2.push( B[e][0] ) )
+    var b = math.multiply( D.XPT, p2 )
+    b = b.map( e => lot + e )
+    
+    p2 = []
+    indexes.forEach( e => { 
+        var aux = []
+        indexes.forEach( f => { 
+            aux.push( s2VAR[e][f] )
+        })
+        p2.push( aux ) 
+    })
+    
+    p1 = math.multiply( D.XPT, p2 )
+    var ftv = math.multiply( p1, math.transpose( D.XPT ) )
+    var s = math.diag(ftv).map( e => math.sqrt(e) )
+    
+    var dte = []
+    b.forEach( (e, i) => { dte.push( [ p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ), p[i], math.exp( b[i] ), math.exp( b[i] - (1.96 * s[i]) ), math.exp( b[i] + (1.96 * s[i]) ) ] ) })
+    
+    var colNames = ["Period", "Rate", "CI Lo", "CI Hi", "x", "y", "cilb", "ciub"]
+    
+    var df = []
+    dte.forEach( (e, i) => { 
+        var vals = {}
+        dte[i].forEach( (f, j) => { vals[ colNames[j] ] = dte[i][j] } )
+        df.push(vals)
+    } )
+    
+    var res = {  'title_x': "Period", "title_y": "Rate", "abline_y": [] }
+    res['name'] = 'Fitted Temporal Trends'
+    res['datatable'] = df
+    
+    return res
+}
 
 iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
     
