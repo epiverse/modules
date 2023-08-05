@@ -89,7 +89,7 @@ function performApcAnalysis(){
 }
 
 function aggregateWaldTestTable(){
-    var features = ['getCoefficients', 'getAgeDeviations', 'getPeriodDeviations', 'getCohortDeviations', 'getPeriodRateRatio', 'getCohortRateRatio', 'getLocalDrfts']
+    var features = ['getCoefficients', 'getAgeDeviations', 'getPeriodDeviations', 'getCohortDeviations', 'getPeriodRateRatio', 'getCohortRateRatio', 'getLocalDrifts']
     var paramExtra = ''
     
     var dtwt = { 'name': 'Wald Tests', 'datatable': {} }

@@ -48,9 +48,9 @@ gendoc.getObjects = () => {
 }
 
 gendoc.buildTableObjects = () => {
-    if(gendoc.objects.length==0){
+    //if(gendoc.objects.length==0){
         gendoc.getObjects()
-    }
+    //}
     
     var table = '';
     if(gendoc.objects.length>0){
@@ -128,9 +128,9 @@ gendoc.getProperties = () => {
 }
 
 gendoc.buildTableProperties = () => {
-    if(gendoc.properties.length==0){
+    //if(gendoc.properties.length==0){
         gendoc.getProperties()
-    }
+    //}
     
     var table = '';
     if(gendoc.properties.length>0){
@@ -363,9 +363,9 @@ gendoc.buildLinkSource = (linkCode) => {
 }
 
 gendoc.buildPropertyDetail = (remote_host) => {
-    if(gendoc.propertyDetails.length==0){
+    //if(gendoc.propertyDetails.length==0){
         gendoc.getDetails(remote_host)
-    }
+    //}
         
     var table = '';
     if(gendoc.propertyDetails.length>0){
@@ -401,17 +401,18 @@ gendoc.buildDocumentation = (jsfile, container_id, remote_host) => {
         var methods = gendoc.buildTableProperties()
         var details = gendoc.buildPropertyDetail(remote_host)
         
+        objects = (objects.length > 1) ? '<h3> Objects </h3>'+objects : ''
+        methods = (methods.length > 1) ? '<h3> Properties </h3>'+methods : ''
+        details = (details.length > 1) ? '<h3> Properties Details </h3>'+details : ''
+        
         var html=`
             <h2>Documentation</h2>
         
             <div class="col-12" >
-                <h3> Objects </h3>
                 ${objects}
                 
-                <h3> Properties </h3>
                 ${methods}
                 
-                <h3> Properties Details </h3>
                 ${details}
             </div>
         `

@@ -2201,5 +2201,5 @@ function kroneckerUnit( values, valuesPosition='left', unitLength ){
     return matrix
 }
 
-// export { apc, mean, sum, max, min, kroneckerUnit, getUnitVector, getUnitDiagMatrix, calcDiffDiag, solveSystem, getMatRank }
+export { apc, mean, sum, max, min, kroneckerUnit, getUnitVector, getUnitDiagMatrix, calcDiffDiag, solveSystem, getMatRank }
 
