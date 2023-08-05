@@ -1,36 +1,85 @@
-/* statistics */
+/* apc statistics */
 
 /*
 
-s = iarc.formatData( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', datci )
-dt = iarc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
-D = iarc.makeDesignMatrix(dt)
-apcM = iarc.apcfit(dt, D.X)
+s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', datci )
+dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+D = apc.makeDesignMatrix(dt)
+apcM = apc.apcfit(dt, D.X)
 
-fr = iarc.getFittedRates( s, dt, D, apcM )
-coefs = iarc.getCoefficients( s, dt, D, apcM )
-iarc.vizDatatableStats(coefs, 'coefficients')
-nd = iarc.getNetDrift( apcM ) 
-iarc.vizDatatableStats(nd, 'netdrift')
-adev = iarc.getAgeDeviations( dt, D, apcM )
-pdev = iarc.getPeriodDeviations( dt, D, apcM )
-df = iarc.getCohortDeviations( dt, D, apcM )
-df = iarc.getLongitudinalAgeCurve( dt, D, apcM )
-df = iarc.getLongitudinalAgeRateRatio( dt, D, apcM )
-df = iarc.getCrossSectionalAgeCurve( dt, D, apcM )
-df = iarc.getLongitudinal2CrossSectionalAgeCurve( dt, D, apcM )
-df = iarc.getFittedTemporalTrends( dt, D, apcM )
-df = iarc.getPeriodRateRatio( dt, D, apcM )
-df = iarc.getCohortRateRatio( dt, D, apcM )
-df = iarc.getFittedCohortPatternRate( dt, D, apcM )
-df = iarc.getLocalDrfts( dt, D, apcM )
+fr = apc.getFittedRates( s, dt, D, apcM )
+coefs = apc.getCoefficients( s, dt, D, apcM )
+apc.vizDatatableStats(coefs, 'coefficients')
+nd = apc.getNetDrift( apcM ) 
+apc.vizDatatableStats(nd, 'netdrift')
+adev = apc.getAgeDeviations( dt, D, apcM )
+pdev = apc.getPeriodDeviations( dt, D, apcM )
+df = apc.getCohortDeviations( dt, D, apcM )
+df = apc.getLongitudinalAgeCurve( dt, D, apcM )
+df = apc.getLongitudinalAgeRateRatio( dt, D, apcM )
+df = apc.getCrossSectionalAgeCurve( dt, D, apcM )
+df = apc.getLongitudinal2CrossSectionalAgeCurve( dt, D, apcM )
+df = apc.getFittedTemporalTrends( dt, D, apcM )
+df = apc.getPeriodRateRatio( dt, D, apcM )
+df = apc.getCohortRateRatio( dt, D, apcM )
+df = apc.getFittedCohortPatternRate( dt, D, apcM )
+df = apc.getLocalDrfts( dt, D, apcM )
 
-iarc.vizDatatableStats(df, 'apc_table')
-iarc.vizPlotStats(df, 'apc_plot')
+apc.vizDatatableStats(df, 'apc_table')
+apc.vizPlotStats(df, 'apc_plot')
       
 */
 
-iarc.getLocalDrfts = ( dt, D, apcM ) => {
+/**
+ * Main global portable module.
+ *
+ * @namespace apc
+ * @property {Function} getLocalDrfts - {@link apc.getLocalDrfts}
+ * @property {Function} getFittedCohortPatternRate - {@link apc.getFittedCohortPatternRate}
+ * @property {Function} getCohortRateRatio - {@link apc.getCohortRateRatio}
+ * @property {Function} getPeriodRateRatio - {@link apc.getPeriodRateRatio}
+ * @property {Function} getFittedTemporalTrends - {@link apc.getFittedTemporalTrends}
+ * @property {Function} getLongitudinal2CrossSectionalAgeCurve - {@link apc.getLongitudinal2CrossSectionalAgeCurve}
+ * @property {Function} getCrossSectionalAgeCurve - {@link apc.getCrossSectionalAgeCurve}
+ * @property {Function} getLongitudinalAgeRateRatio - {@link apc.getLongitudinalAgeRateRatio}
+ * @property {Function} getLongitudinalAgeCurve - {@link apc.getLongitudinalAgeCurve}
+ * @property {Function} getCohortDeviations - {@link apc.getCohortDeviations}
+ * @property {Function} getPeriodDeviations - {@link apc.getPeriodDeviations}
+ * @property {Function} getAgeDeviations - {@link apc.getAgeDeviations}
+ * @property {Function} getNetDrift - {@link apc.getNetDrift}
+ * @property {Function} getCoefficients - {@link apc.getCoefficients}
+ * @property {Function} getFittedRates - {@link apc.getFittedRates}
+ * @property {Function} apcfit - {@link apc.apcfit}
+ * @property {Function} makeDesignMatrix - {@link apc.makeDesignMatrix}
+ * @property {Function} makeInputDataApcAnalysis - {@link apc.makeInputDataApcAnalysis}
+ * @property {Function} formatDataCi5 - {@link apc.formatDataCi5}
+ * @property {Function} vizPlotStats - {@link apc.vizPlotStats}
+ * @property {Function} vizDatatableStats - {@link apc.vizDatatableStats}
+ * @property {Function} loadScript - {@link apc.loadScript}
+
+ */
+
+let apc = {}
+
+/** 
+* Function to get the Local Drifts
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Local Drifts. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getLocalDrfts( dt, D, apcM )
+*/
+apc.getLocalDrfts = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -170,7 +219,7 @@ iarc.getLocalDrfts = ( dt, D, apcM ) => {
     wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
     dtwt['datatable'] = wt
     
-    var nd = iarc.getNetDrift( apcM ) 
+    var nd = apc.getNetDrift( apcM ) 
     var abls = nd.datatable
     var res = {  'title_x': "Age", "title_y": "Percent per Year", "abline_y": [  { 'type': 'dot', 'width': 1, 'y': abls['CI Lo'] } , { 'width': 1, 'y': abls['Net Drift (%/year)'] }, { 'type': 'dot', 'width': 1, 'y': abls['CI Hi'] }  ] }
     res['name'] = 'Local Drifts with Net Drift'
@@ -180,7 +229,25 @@ iarc.getLocalDrfts = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getFittedCohortPatternRate = ( dt, D, apcM ) => {
+/** 
+* Function to get the Fitted Cohort Pattern Rate
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Fitted Cohort Pattern Rate. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getFittedCohortPatternRate( dt, D, apcM )
+*/
+apc.getFittedCohortPatternRate = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -290,7 +357,25 @@ iarc.getFittedCohortPatternRate = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getCohortRateRatio = ( dt, D, apcM ) => {
+/** 
+* Function to get the Cohort Rate Ratio
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Cohort Rate Ratio. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getCohortRateRatio( dt, D, apcM )
+*/
+apc.getCohortRateRatio = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -409,7 +494,25 @@ iarc.getCohortRateRatio = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getPeriodRateRatio = ( dt, D, apcM ) => {
+/** 
+* Function to get the Period Rate Ratio
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Period Rate Ratio. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getPeriodRateRatio( dt, D, apcM )
+*/
+apc.getPeriodRateRatio = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -491,7 +594,25 @@ iarc.getPeriodRateRatio = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
+/** 
+* Function to get the Fitted Temporal Trends
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Fitted Temporal Trends. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getFittedTemporalTrends( dt, D, apcM )
+*/
+apc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -553,7 +674,25 @@ iarc.getFittedTemporalTrends = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
+/** 
+* Function to get the Longitudinal to Cross-Sectional Age Curve
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Longitudinal to Cross-Sectional Age Curve. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getLongitudinal2CrossSectionalAgeCurve( dt, D, apcM )
+*/
+apc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
     
     var B = apcM.B
     var s2VAR = apcM.s2VAR
@@ -650,7 +789,25 @@ iarc.getLongitudinal2CrossSectionalAgeCurve = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getCrossSectionalAgeCurve = ( dt, D, apcM ) => {
+/** 
+* Function to get the Cross-Sectional Age Curve
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Cross-Sectional Age Curve. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getCrossSectionalAgeCurve( dt, D, apcM )
+*/
+apc.getCrossSectionalAgeCurve = ( dt, D, apcM ) => {
     var B = apcM.B
     var s2VAR = apcM.s2VAR
     
@@ -699,7 +856,25 @@ iarc.getCrossSectionalAgeCurve = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getLongitudinalAgeRateRatio = ( dt, D, apcM ) => {
+/** 
+* Function to get the Longitudinal Age Rate Ratio
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Longitudinal Age Rate Ratio. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getLongitudinalAgeRateRatio( dt, D, apcM )
+*/
+apc.getLongitudinalAgeRateRatio = ( dt, D, apcM ) => {
     var B = apcM.B
     var s2VAR = apcM.s2VAR
     
@@ -752,7 +927,25 @@ iarc.getLongitudinalAgeRateRatio = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getLongitudinalAgeCurve = ( dt, D, apcM ) => {
+/** 
+* Function to get the Longitudinal Age Curve
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the Longitudinal Age Curve. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getLongitudinalAgeCurve( dt, D, apcM )
+*/
+apc.getLongitudinalAgeCurve = ( dt, D, apcM ) => {
     var C = dt.c.length
     var c = dt.c
     var c0 = dt.Rvals[2]
@@ -834,7 +1027,25 @@ iarc.getLongitudinalAgeCurve = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getCohortDeviations = ( dt, D, apcM ) => {
+/** 
+* Function to get the cohort deviations
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the cohort deviations. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getCohortDeviations( dt, D, apcM )
+*/
+apc.getCohortDeviations = ( dt, D, apcM ) => {
     var C = dt.c.length
     var c = dt.c
     var c0 = dt.Rvals[2]
@@ -911,7 +1122,25 @@ iarc.getCohortDeviations = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getPeriodDeviations = ( dt, D, apcM ) => {
+/** 
+* Function to get the period deviations
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the period deviations. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getPeriodDeviations( dt, D, apcM )
+*/
+apc.getPeriodDeviations = ( dt, D, apcM ) => {
     var P = dt.p.length
     var p = dt.p
 
@@ -954,7 +1183,25 @@ iarc.getPeriodDeviations = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getAgeDeviations = ( dt, D, apcM ) => {
+/** 
+* Function to get the age deviations
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the age deviations. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getAgeDeviations( dt, D, apcM )
+*/
+apc.getAgeDeviations = ( dt, D, apcM ) => {
     var A = dt.a.length
     var a = dt.a
 
@@ -997,7 +1244,23 @@ iarc.getAgeDeviations = ( dt, D, apcM ) => {
     return res
 }
 
-iarc.getNetDrift = ( apcM ) => {
+/** 
+* Function to get the net drift 
+*
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the net drift results. It has the following keys: name - analysis identifier; datatable - Object containing the values of b coefficient, lower bound of confidence interval and upperbound of this confidence interval
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var nd = apc.getNetDrift( apcM )
+*/
+apc.getNetDrift = ( apcM ) => {
     var b = apcM.B[2][0]
     var v = apcM.s2VAR[2][2]
     var s = math.sqrt(v)
@@ -1019,7 +1282,26 @@ iarc.getNetDrift = ( apcM ) => {
     return res
 }
 
-iarc.getCoefficients = ( s, dt, D, apcM ) => {
+/** 
+* Function to get the coefficients
+*
+* @param {Object} s Object containing the formatted CI5 data
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the coefficients. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var coefs = apc.getCoefficients( s, dt, D, apcM )
+*/
+apc.getCoefficients = ( s, dt, D, apcM ) => {
     var B = apcM.B
     var s2VAR = apcM.s2VAR
     
@@ -1056,7 +1338,26 @@ iarc.getCoefficients = ( s, dt, D, apcM ) => {
     return res
 }
 
-iarc.getFittedRates = ( s, dt, D, apcM ) => {
+/** 
+* Function to get the fitted rates
+*
+* @param {Object} s Object containing the formatted CI5 data
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} D Object containing the design matrix computed variables
+* @param {Object} apcM Object containing the APC model computed variables
+*
+* @returns {Object} Object containing the fitted rates. It has the following keys: name - analysis identifier; events - Matrix with fitted rates for events (ca; offset - Matrix with fitted rates for offset (population); offset_tick - original offset tick used; ages - original array with the ages; periods - original array of periods
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var fr = apc.getFittedRates( s, dt, D, apcM )
+*/
+apc.getFittedRates = ( s, dt, D, apcM ) => {
     var B = apcM.B
     var s2VAR = apcM.s2VAR
     var A = dt.a.length
@@ -1108,7 +1409,23 @@ iarc.getFittedRates = ( s, dt, D, apcM ) => {
     return res
 }
 
-iarc.apcfit = (dt, X) => {
+/** 
+* Function to compute the Age-Period-Cohort analysis model
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+* @param {Object} X Datatable containing the combined columns with the values for age period and cohort from the events and offset
+*
+* @returns {Object} Object containing the APC model computed variables. It has the following keys: B - computed slope intercept; s2 - variance factor; s2VAR - datatable with values multiplied by variance; DEV - deviations; DevResids - deviation residuals 
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+*/
+apc.apcfit = (dt, X) => {
     var Y = dt.data.slice(1).map( e => e.slice(3,5) )
     var offset = Y.map( e => math.log(e[1]) )
     var y = Y.map( e => e[0] )
@@ -1157,12 +1474,26 @@ iarc.apcfit = (dt, X) => {
     var s2v = []
     V.forEach( e => { s2v.push( e.map( f => f*s2 ) ) } )
     
-    apcmodel = { 'B': B, 's2': s2, 's2VAR': s2v, 'DEV': DEV, 'DevResids': DEVRESIDS }
+    var apcmodel = { 'B': B, 's2': s2, 's2VAR': s2v, 'DEV': DEV, 'DevResids': DEVRESIDS }
     
     return apcmodel
 }
 
-iarc.makeDesignMatrix = (dt) => {
+/** 
+* Function to compute the design matrix object
+*
+* @param {Object} dt Object containing the primary normalized variables computed for the apc statistical functions
+*
+* @returns {Object} Object containing the design matrix computed variables. It has the following keys: X - Combined columns for age, period and cohort transformed values; Pt - Array to guide the user informiing the indexes (in X) for age in the fourth element, period indexes in X .in the fifth element and cohort indexes in X in the sixth element; XAD - Matrix with deviations for the age matrix; XPD - Matrix with deviations for the period matrix; XCD - Matrix with deviations for the cohort matrix
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+*/
+apc.makeDesignMatrix = (dt) => {
     var N = dt.data.length - 1
     var J = getUnitVector(N)
 
@@ -1340,23 +1671,39 @@ iarc.makeDesignMatrix = (dt) => {
     } )
     XCD = temp
 
-    D = { 'X': X, 'Pt': Pt, 'XAD': XAD, 'XPD': XPD, 'XCD': XCD }
+    var D = { 'X': X, 'Pt': Pt, 'XAD': XAD, 'XPD': XPD, 'XCD': XCD }
 
     return D
 }
 
-iarc.makeInputDataApcAnalysis = (s, over_dispersion = 1, offset_tick = 10**5, zero_fill = 0.1) => {
+/** 
+* Wrapper function to compute primary variables for the apc analysis from the formatted CI5 data
+*
+* @param {Object} s Object containing the formatted CI5 data
+* @param {number} [over_dispersion=1] Value of over dispersion
+* @param {number} [offset_tick=10000] Value for offset tick
+* @param {number} [zero_fill=0.1] Value to replace occcurrences of zero value in the number of cases
+*
+* @returns {Object} Object containing the primary normalized variables computed for the apc statistical functions. It has the following keys: name - title of the filtered data with the continent, registry, gender and cancer identifiers; description - brief text about the data origin; a - normalized ages vector; periods - years in the analysis; p - normalized periods vector; c - normalized cohort values; data - data table with the columns age, period, cohort, events and offset combined; over_dispersion - Value of the original over dispersion used; offset_tick - Value of offset_tick used; zero_fill - Value of the zero_fill parameter used; Rvals - array with three elements: value of the element in the middle of a array, value of the element in the middle of p array, and value of the element in the c array computed from the previous indexes.
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+*/
+apc.makeInputDataApcAnalysis = (s, over_dispersion = 1, offset_tick = 10**5, zero_fill = 0.1) => {
     s['a'] = s.ages
     s['p'] = s.periods
 
-    dt = { 'name': s.name, 'description': s.description, 'a': [], 'p': [] }
+    var dt = { 'name': s.name, 'description': s.description, 'a': [], 'p': [] }
 
-    m = s.events.length
-    t1 = s.a.slice(1, m+1)
-    t2 = s.a.slice(0, m)
+    var m = s.events.length
+    var t1 = s.a.slice(1, m+1)
+    var t2 = s.a.slice(0, m)
     t1.forEach( (e, index) => { dt['a'].push( ( ( t2[index] - t1[index]) * 0.5 ) + t1[index] ) } )
 
-    n = s.periods.length
+    var n = s.periods.length
     t1 = s.p.slice(1, n+1)
     t2 = s.p.slice(0, n)
     t1.forEach( (e, index) => { dt['p'].push( ( ( t2[index] - t1[index]) * 0.5 ) + t1[index] ) } )
@@ -1368,7 +1715,7 @@ iarc.makeInputDataApcAnalysis = (s, over_dispersion = 1, offset_tick = 10**5, ze
 
     var dif = Array.from( cdata )
     dif.sort( (a,b) => a-b )
-    t = new Set(dif)
+    var t = new Set(dif)
     dif = Array.from(t)
     dt['c'] = dif
     
@@ -1406,7 +1753,23 @@ iarc.makeInputDataApcAnalysis = (s, over_dispersion = 1, offset_tick = 10**5, ze
     return dt
 }
 
-iarc.formatData = (continent, registry, gender, cancer, dat) => {
+/** 
+* Format CI5 raw data to Age Period Cohort analysis functions
+*
+* @param {string} continent Continent
+* @param {string} registry Registry
+* @param {string} gender Gender
+* @param {string} cancer Cancer
+* @param {Object} dat CI5 data object
+*
+* @returns {Object} Object containing the formatted CI5 data. It has the following keys: name - title of the filtered data with the continent, registry, gender and cancer identifiers; description - brief text about the data origin; offset_tick - parameter for calculus fixed in 10000; periods - years in the analysis; ages - age groups being considered; events - number of cases considering the filters according to the year and age group; offset - population at risk in the specific year and age group
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+*/
+apc.formatDataCi5 = (continent, registry, gender, cancer, dat) => {
     var pops = dat[continent]['dict_population'][registry][gender]
     var obj = dat[continent]['data_cases'][registry][gender][cancer]
     var years_y = Object.keys( obj )
@@ -1432,7 +1795,7 @@ iarc.formatData = (continent, registry, gender, cancer, dat) => {
         }
         i+=1
     }
-    age_groups_x = temp
+    var age_groups_x = temp
     
     var start = years_y[0]
     
@@ -1465,7 +1828,24 @@ iarc.formatData = (continent, registry, gender, cancer, dat) => {
 }
 
 /*  ------------------- Visualization functions  -------------------   */
-iarc.vizPlotStats = (dt, idContainer) => {
+
+/** 
+* Function to show plot with the confidence intervals 
+*
+* @param {Object} dt Object containing the object of the analysis result. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+* @param {string} idContainer Tag identifier
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getAgeDeviations( dt, D, apcM )
+* apc.vizPlotStats(dt, 'apc_plot')
+*/
+apc.vizPlotStats = (dt, idContainer) => {
     var x = dt.datatable.map( e => e.x )
     var y = dt.datatable.map( e => e.y )
     var lb = dt.datatable.map( e => e.cilb )
@@ -1564,7 +1944,23 @@ iarc.vizPlotStats = (dt, idContainer) => {
     
 }
 
-iarc.vizDatatableStats = (dt, idContainer) => {
+/** 
+* Function to show table in an html element 
+*
+* @param {Object} dt Object containing the object of the analysis result. It has the following keys: name - analysis identifier; datatable - Object containing the values of x, y, lower bound of confidence interval and upperbound of this confidence interval; waldTest - object containing the analysis identifier (name key) of the wald test and the datatable (datatable key) with objects with the X2 (chi-squared), df (degrees of freedom) and P-Value (calculated p-value) keys; title_x - title of x axis for plot; title_y - title of y axis for plot; abline_y (optional) - array of objects containing the y (y key) value to draw the constant line, the type (type key) of line (dash, dot or remove this key for a solid line) and the width (width key) of line (default is 2)
+* @param {string} idContainer Tag identifier
+*
+* 
+* @example
+* let v = await iarc.loadCi5Data()
+* var s = apc.formatDataCi5( 'Oceania', 'Australia_NSW_ACT', 'Female', 'Lung (incl. trachea) (C33-34)', v)
+* var dt = apc.makeInputDataApcAnalysis(s, 1, 10**5, 0.1)
+* var D = apc.makeDesignMatrix(dt)
+* var apcM = apc.apcfit(dt, D.X)
+* var df = apc.getAgeDeviations( dt, D, apcM )
+* apc.vizDatatableStats(dt, 'apc_table')
+*/
+apc.vizDatatableStats = (dt, idContainer) => {
     var htmls = ''
     var title = dt['name']
     var spanAdd = 1
@@ -1619,6 +2015,39 @@ iarc.vizDatatableStats = (dt, idContainer) => {
     document.getElementById(idContainer).innerHTML = htmls
 }
 
+/** 
+* Load a certain dependency library from link
+* 
+*
+* @param {string} url Library URL.
+* 
+* @example
+* apc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+*
+*/
+apc.loadScript = async function(url){
+	console.log(`${url} loaded`)
+    async function asyncScript(url){
+        let load = new Promise((resolve,regect)=>{
+            let s = document.createElement('script')
+            s.src=url
+            s.onload=resolve
+            document.head.appendChild(s)
+        })
+        await load
+    }
+    // satisfy dependencies
+    await asyncScript(url)
+}
+
+if(typeof(Plotly)=="undefined"){
+	apc.loadScript('https://cdn.plot.ly/plotly-2.16.1.min.js')
+}
+
+if(typeof(pchisq)=="undefined"){
+	apc.loadScript('https://epiverse.github.io/modules/iarc/ytliu0_statFunctions.js')
+}
+
 /*  ------------------- Auxiliary functions for statistical analysis (solveSystem, calcDiffDiag, getUnitVector, kroneckerUnit) / math computation shorcuts (min, max, mean, sum) -------------------   */
 
 const sum = (arr) => arr.reduce( (a,b) => a+b )
@@ -1626,12 +2055,39 @@ const max = (arr) => arr.reduce( (a,b) => { if(a > b) { return a; } else{ return
 const min = (arr) => arr.reduce( (a,b) => { if(a < b) { return a; } else{ return b } } )
 const mean = (arr) => sum(arr)/arr.length
 
+/** 
+* Calculates the rank of a matrix
+*
+* @param {Array} mat Matrix 
+*
+* @returns {number} Rank of the matrix
+*
+* 
+* @example
+* var mat = [ [1,2,3], [4,5,6], [7,8,9] ]
+* let v = getMatRank( mat )
+*/
 function getMatRank(mat){
     var mup = math.qr( mat ).R // Finding upper triangular matrix
     var rank = math.diag( mup ).filter(e => e!=0 ).length // Checking how many elements in main diagonal is distinct from zero
     return rank
 }
 
+/** 
+* Solve the variable values of a linear system
+*
+* @param {Array} x Squared matrix
+* @param {Array} b Matrix or vector on the other side of the formula (if null is passed, it returns the inverse matrix of x)
+*
+* @returns {Array} Linear system solution
+*
+* 
+* @example
+* var vector = [ 4, 8, 12 ]
+* var mat = [ [1,2,3], [4,5,6], [7,8,9] ]
+* let inv = solveSystem( mat )
+* let res = solveSystem( mat, vector )
+*/
 function solveSystem(x, b){
     var tx = math.transpose(x)
     var ix = math.inv(x)
@@ -1643,6 +2099,20 @@ function solveSystem(x, b){
     return rx
 }
 
+/** 
+* Calculates the difference between two matrices, the first being made from a vector and the second the desired matrix
+*
+* @param {Array} vec Vector that will generate a diagonal matrix
+* @param {Array} mat Matrix that will be in the right side of the subtraction
+*
+* @returns {Array} Matrix result of the subtraction
+*
+* 
+* @example
+* var vector = [ 4, 8, 12 ]
+* var mat = [ [1,2,3], [4,5,6], [7,8,9] ]
+* let v = calcDiffDiag( vector, mat )
+*/
 function calcDiffDiag(vec, mat){
     var dga = math.diag( vec )
     
@@ -1658,6 +2128,17 @@ function calcDiffDiag(vec, mat){
     return diffg
 }
 
+/** 
+* Calculates a unit diagonal matrix
+*
+* @param {number} unitLength Size of the unit vector of main diagonal of the matrix
+*
+* @returns {Array} Unit diagonal matrix
+*
+* 
+* @example
+* let v = getUnitDiagMatrix( 3 )
+*/
 function getUnitDiagMatrix(unitLength){
     var unit = []
     for (var i=0; i<unitLength; i++){
@@ -1671,6 +2152,17 @@ function getUnitDiagMatrix(unitLength){
     return unit
 }
 
+/** 
+* Calculates a unit vector
+*
+* @param {number} unitLength Size of the unit vector
+*
+* @returns {Array} Unit Vector
+*
+* 
+* @example
+* let v = getUnitVector( 3 )
+*/
 function getUnitVector(unitLength){
     var unit = []
     for (var i=0; i<unitLength; i++){
@@ -1679,6 +2171,20 @@ function getUnitVector(unitLength){
     return unit
 }
 
+/** 
+* Calculates the matrix made from kronecker product between a unit vector and a matrix
+*
+* @param {Array} values Matrix values
+* @param {string} [valuesPosition=left] Side of the values matrix in the multiplication
+* @param {number} unitLength Size of the unit vector
+*
+* @returns {Array} Kronecker product matrix
+*
+* 
+* @example
+* var mat = [ [1,2,3], [4,5,6], [7,8,9] ]
+* let v = kroneckerUnit( mat, 'right', 3 )
+*/
 function kroneckerUnit( values, valuesPosition='left', unitLength ){
     var unit = getUnitVector(unitLength)
     
@@ -1692,4 +2198,6 @@ function kroneckerUnit( values, valuesPosition='left', unitLength ){
     var matrix = math.kron(lv, rv)
     return matrix
 }
+
+// export { apc, mean, sum, max, min, kroneckerUnit, getUnitVector, getUnitDiagMatrix, calcDiffDiag, solveSystem, getMatRank }
 
