@@ -221,9 +221,10 @@ apc.getLocalDrifts = ( dt, D, apcM ) => {
     wt['P-Value'] = pchisq( wt['X2'], wt['df'], 1)
     dtwt['datatable'] = wt
     
-    var nd = apc.getNetDrift( apcM ) 
-    var abls = nd.datatable
-    var res = {  'title_x': "Age", "title_y": "Percent per Year", "abline_y": [  { 'type': 'dot', 'width': 1, 'y': abls['CI Lo'] } , { 'width': 1, 'y': abls['Net Drift (%/year)'] }, { 'type': 'dot', 'width': 1, 'y': abls['CI Hi'] }  ] }
+    //var nd = apc.getNetDrift( apcM ) 
+    //var abls = nd.datatable
+    //var res = {  'title_x': "Age", "title_y": "Percent per Year", "abline_y": [  { 'type': 'dot', 'width': 1, 'y': abls['CI Lo'] } , { 'width': 1, 'y': abls['Net Drift (%/year)'] }, { 'type': 'dot', 'width': 1, 'y': abls['CI Hi'] }  ] }
+    var res = {  'title_x': "Age", "title_y": "Percent per Year", "abline_y": [  ] }
     res['name'] = 'Local Drifts with Net Drift'
     res['datatable'] = df
     res['waldTest'] = dtwt
