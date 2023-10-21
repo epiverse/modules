@@ -84,7 +84,8 @@ iarc.loadCi5Data = async () => {
     var res = {}
     var dat = { "dict_registry": {}, "dict_population": {}, "data_cases": { } }
     
-    var url = "https://corsproxy.io/?https://ci5.iarc.fr/CI5plus/old/CI5plus_Summary_April2019.zip"
+    //var url = "https://corsproxy.io/?https://gco.iarc.fr/media/ci5/data/ci5plus/CI5plus_Summary_April2019.zip"
+    var url = location.href.split('#')[0]+"CI5plus_Summary_April2019.zip"
     const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip/+esm')).default
     
     fetch(url)
