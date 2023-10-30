@@ -1947,6 +1947,7 @@ apc.vizPlotStats = (dt, idContainer) => {
     
 }
 
+
 /** 
 * Function to show table in an html element 
 *

@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <title>FAIRLibJS Library</title>
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        
+        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+        
+        
+        <script src="../gendoc.js"></script>
+        <link rel="stylesheet" href="../gendoc.css">
+        
+    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js" integrity="sha512-a+/SD0dbGeXTN4AA5F1dDZqsPvXKKyS1bvU2z5ElpKNJ4xQlOMUs/1+suA+j+kj5nAAya+VmT5HUKZmazluxVQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://json-ld.org/playground/jsonld-vis.js"></script>
+        
+        <script src="fairlibjs.js"></script>
+        
+    <style>
+            .fields{
+                display: inline-block;
+            }
+            .mr{
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="container-fluid">
+            <div class="container">
+            
+                <section id="header">
+                    <h1>
+                        EpiVerse - FAIRLibJs Module 
+                        <sup style="font-size:medium;color:green"><a href="https://dceg.cancer.gov/" target="_blank" style="color:green">DCEG</a></sup> <br>
+                        <span style="font-size:small;color:blue">
+                            [<a href="https://github.com/epiverse/fairlibjs" target="_blank">code</a>] 
+                            [<a href="https://github.com/epiverse/fairlibjs/issues" target="_blank">issues</a>] 
+                            [<a href="https://www.youtube.com/watch?v=exYfV48Fg4s" target="_blank" style="font-size:large;font-weight:bold;color:red">YouTube</a>]
+                        </span>
+                    </h1> 
+                    <h3>FAIRLibJs - A library to annotate Javascript libraries according to FAIR metadata standards</h3>
+                    
+                    <hr>
+                </section>
+            
+                <ul class="nav nav-tabs" id="options" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">EDAM Mapping</button>
+                  </li>
+                  
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="jsonld_publication-tab" data-bs-toggle="tab" data-bs-target="#jsonld_publication" type="button" role="tab" aria-controls="home" aria-selected="true">Publications JSON-LD</button>
+                  </li>
+                  
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="jsonld_library-tab" data-bs-toggle="tab" data-bs-target="#jsonld_library" type="button" role="tab" aria-controls="home" aria-selected="true">Library annotation JSON-LD</button>
+                  </li>
+                  
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documentation-tab" data-bs-toggle="tab" data-bs-target="#documentation" type="button" role="tab" aria-controls="documentation" aria-selected="false">Documentation</button>
+                  </li>
+                </ul>
+                
+                <div class="tab-content" id="optionsContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        <edam-mapping-component />
+                    </div>
+                    
+                    <div class="tab-pane fade show" id="jsonld_library" role="tabpanel" aria-labelledby="jsonld_library-tab">
+                        <library-annotation-component />
+                    </div>
+                    
+                    <div class="tab-pane fade show" id="jsonld_publication" role="tabpanel" aria-labelledby="jsonld_publication-tab">
+                        <publication-annotation-component />
+                    </div>
+                    
+                    <div class="tab-pane fade" id="documentation" role="tabpanel" aria-labelledby="documentation-tab">
+                        <section id="documentation-content" class="mt-3">
+                            
+                        </section>
+                    </div>
+                </div>
+                
+                <script>
+                    gendoc.buildDocumentation( location.href.split('#')[0]+'fairlibjs.js', 'documentation-content', 'https://github.com/epiverse/fairlibjs/blob/main/fairlibjs.js')
+                </script>
+            
+                <script src="index.js"></script>
+                <script src="components/edam_mapping.js"></script>
+                <script src="components/publication_annotation.js"></script>
+                <script src="components/library_annotation.js"></script>
+                        
+            </div>
+        </div>
+
+        
+    </body>
+</html>
+
