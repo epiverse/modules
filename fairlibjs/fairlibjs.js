@@ -138,6 +138,13 @@ fairlibjs.evaluateAnnotation = function(predicted, real, cutoff){
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name performKeyExtranctionEdamMappingInBatch
+ * @meta.description Perform keyword extraction and calculate similarity and map edam topic and operation concepts to the keywords in batch
+*
+*
 * Perform keyword extraction and calculate similarity and map edam topic and operation concepts to the keywords in batch
 * 
 *
@@ -198,6 +205,13 @@ fairlibjs.performKeyExtranctionEdamMappingInBatch = async function(url, evaluate
 }
  
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name get_rake_keywords
+ * @meta.description Calculate similarity and map edam topic and operation concepts to the keywords
+*
+*
 * Calculate similarity and map edam topic and operation concepts to the keywords
 * 
 *
@@ -243,6 +257,13 @@ fairlibjs.mapEdamWithKeywords = (fobj) => {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name parseEdamComponents
+ * @meta.description Parse Edam ontology components
+*
+*
 * Parse Edam ontology components
 * 
 * @async
@@ -276,6 +297,13 @@ fairlibjs.parseEdamComponents = async function(fobj){
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name parseXmlCollection
+ * @meta.description Parse HTML Collection retrieved from Edam XML ontology
+*
+*
 * Parse HTML Collection retrieved from Edam XML ontology
 * 
 * @async
@@ -319,7 +347,14 @@ fairlibjs.parseXmlCollection = function(collection){
 }
  
 /** 
-* Setup theopen ai chat gpt key
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name set_gpt_key
+ * @meta.description Setup the open ai chat gpt key
+*
+*
+* Setup the open ai chat gpt key
 * 
 *
 * @param {string} key Open AI key
@@ -332,6 +367,13 @@ fairlibjs.set_gpt_key = async (key) => {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name completions
+ * @meta.description Send question, context paragrpahs from monographs and the instruction to open ai chat gpt
+*
+*
 * Send question, context paragrpahs from monographs and the instruction to open ai chat gpt
 * 
 *
@@ -369,6 +411,13 @@ fairlibjs.completions = async function (messages, model='gpt-3.5-turbo', tempera
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name get_gpt_keywords
+ * @meta.description Send summary text to chat gpt to extract keywords
+*
+*
 * Send summary text to chat gpt to extract keywords
 * 
 *
@@ -414,6 +463,13 @@ fairlibjs.get_gpt_keywords = async (q) => {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name get_rake_keywords
+ * @meta.description Send summary text NLP RAKE method to extract keywords
+*
+*
 * Send summary text NLP RAKE method to extract keywords
 * 
 *
@@ -464,6 +520,13 @@ fairlibjs.get_rake_keywords = (fobj, q, score_cutoff = 2) => {
  */
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name RocrateArtifact
+ * @meta.description Initializes the Research Object Crate object
+*
+*
 * Initializes the Research Object Crate object
 * 
 *
@@ -481,6 +544,13 @@ RocrateArtifact = function ( sourceCodeUrl ) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name getLines
+ * @meta.description Read and parse lines of the library source code
+*
+*
 * Read and parse lines of the library source code
 * 
 * @async
@@ -505,6 +575,13 @@ fairlibjs.getLines = async (artobj) =>{
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name getSourceGeneralMeta
+ * @meta.description Mine initial metadata (authors, name description and license) from the lines of the library source code
+*
+*
 * Mine initial metadata (authors, name description and license) from the lines of the library source code
 * 
 * @async
@@ -641,6 +718,13 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name genRoCrateLibAnnotation
+ * @meta.description Run and Use the annotations retrieved from the general metadata extraction funciton to feed the RO-Crate object
+*
+*
 * Run and Use the annotations retrieved from the general metadata extraction funciton to feed the RO-Crate object
 * 
 * @async
@@ -718,6 +802,13 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name saveFile
+ * @meta.description Open the file in download mode
+*
+*
 * Open the file in download mode
 * 
 *
@@ -747,6 +838,13 @@ fairlibjs.saveFile=function(x,fileName) { // x is the content of the file
 /*------------------------ OpenAire data retrieval & publication annotation ---------------------*/
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchResearchProduct
+ * @meta.description Retrieve OpenAire research products given general parameters
+*
+*
 * Retrieve OpenAire research products given general parameters
 * 
 * @async
@@ -773,7 +871,7 @@ fairlibjs.searchResearchProduct = async function (parameters) {
     let ext = params.join("&")
     
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/researchProducts/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/researchProducts/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -798,6 +896,13 @@ fairlibjs.searchResearchProduct = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchPublication
+ * @meta.description Retrieve OpenAire publications given general parameters
+*
+*
 * Retrieve OpenAire publications given general parameters
 * 
 * @async
@@ -829,7 +934,7 @@ fairlibjs.searchPublication = async function (parameters) {
     var objs = []
         
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/publications/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/publications/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -859,6 +964,13 @@ fairlibjs.searchPublication = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchData
+ * @meta.description Retrieve OpenAire data given general parameters
+*
+*
 * Retrieve OpenAire data given general parameters
 * 
 * @async
@@ -886,7 +998,7 @@ fairlibjs.searchData = async function (parameters) {
     let ext = params.join("&")
     
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/datasets/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/datasets/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -911,6 +1023,13 @@ fairlibjs.searchData = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchSoftware
+ * @meta.description Retrieve OpenAire software given general parameters
+*
+*
 * Retrieve OpenAire software given general parameters
 * 
 * @async
@@ -938,7 +1057,7 @@ fairlibjs.searchSoftware = async function (parameters) {
     let ext = params.join("&")
     
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/software/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/software/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -963,6 +1082,13 @@ fairlibjs.searchSoftware = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchOther
+ * @meta.description Retrieve OpenAire other contributions given general parameters
+*
+*
 * Retrieve OpenAire other contributions given general parameters
 * 
 * @async
@@ -990,7 +1116,7 @@ fairlibjs.searchOther = async function (parameters) {
     let ext = params.join("&")
     
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/other/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/other/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -1015,6 +1141,13 @@ fairlibjs.searchOther = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name searchProject
+ * @meta.description Retrieve OpenAire projects given general parameters
+*
+*
 * Retrieve OpenAire projects given general parameters
 * 
 * @async
@@ -1042,7 +1175,7 @@ fairlibjs.searchProject = async function (parameters) {
     let ext = params.join("&")
     
     if(ext!=""){
-        var dat = await fetch(`http://api.openaire.eu/search/projects/?${ext}`)
+        var dat = await fetch(`https://api.openaire.eu/search/projects/?${ext}`)
         dat = await dat.text()
         let parser = new DOMParser()
         let doc = parser.parseFromString(dat, "text/xml")
@@ -1067,6 +1200,12 @@ fairlibjs.searchProject = async function (parameters) {
 }
 
 /** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name loadScript
+ * @meta.description Load a certain dependency library from link
+*
 * Load a certain dependency library from link
 * 
 *
