@@ -9,6 +9,7 @@ class LibraryAnnotation extends HTMLElement {
             <p>
                The core functionality of the FAIRLibJs library annotates software libraries from documentation strings markups added in the source code, generating a semantic graph formatted in json-LD. It was inspired on the annotations of the tools found in the <a href="https://workflowhub.eu/" target="_blank" > WorkflowHUB </a>. This mentioned registry was designed to host metadata about workflows, that use a set of tools in a coherent order to attend a purpose. Tools like Javascript libraries and modules may have their metadata uploaded on <a href="https://bio.tools">bio.tools</a>. These registries rely on structured metadata to help the knowledge transfer and reusability by other researchers.
             </p>
+            <p> To generate metadata easily to feed the tools registry, we designed this functionality that condenses important informations using the documentation commentary strings that are normally added and extended with markups to indicate specific details, like dependency of other libraries (internal or external). Take a look in <a href="https://epiverse.github.io/modules/fairlibjs/fairlibjs.js" target="_blank" >fairlibjs source code</a> to get the usage example. </p>
         </section>
         
         <section id="usage_libjsonld">
