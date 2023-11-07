@@ -552,9 +552,11 @@ RocrateArtifact = function ( sourceCodeUrl ) {
             "local": location.href.split("#")[0], 
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#", 
             "sc": "http://schema.org/", 
-            "dc": "http://purl.org/dc/elements/1.1/",
+            "dct": "http://purl.org/dc/elements/1.1/",
             "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "edam": "http://edamontology.org/"
+            "edam": "http://edamontology.org/",
+            "bsct":"http://bioschemas.org/types/",
+            "bsc":"http://bioschemas.org/"
         }, 
         "@graph": [ { "@type": "sc:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
     }
@@ -632,10 +634,11 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
         if(l.includes("*/")){
             flag = false
             if( Object.keys(genAnnot).length > 0 ){
-                if(authors.length > 0){
+                
+                if(authors["idList"].length > 0){
                     genAnnot['authors'] = authors
                 }
-                if(deps.length > 0){
+                if(deps["idList"].length > 0){
                     genAnnot['dependencies'] = deps
                 }
                 annotations.push( genAnnot )
@@ -663,7 +666,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                 let orcid = l.match(/\[orcid=(.*?)\]/g) 
                 
                 if( !!ide || !!name || !!orcid ){
-                    let aobj = { '@type': 'Person' }
+                    let aobj = { '@type': 'schema:Person' }
                     if( !!ide ){
                         aobj['@id'] = ide[0].split("identifier=")[1].slice(0,-1)
                     }
@@ -675,11 +678,11 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                     }
                     
                     if( ! aobj['@id'] ){
-                        aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['orcid'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
-                        aobj["dc:identifier"] = aobj["@id"]
+                        aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['sc:orcid'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
+                        aobj["dct:identifier"] = aobj["@id"]
                     }
                     
-                    authors["idList"].push( aobj['@id'] )
+                    authors["idList"].push( { '@id': aobj['@id'] } )
                     authors["resources"].push( aobj )
                 }
             }
@@ -693,14 +696,14 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                 
                 if( !!uri ){
                     let olib = { '@id': uri[0].split("uri=")[1].slice(0,-1) }
-                    olib["dc:identifier"] = olib["@id"]
+                    olib["dct:identifier"] = olib["@id"]
                     if( !!name ){
                         olib['sc:name'] = name[0].split("name=")[1].slice(0,-1)
                     }
                     if( !!type ){
                         type = type[0].split("type=")[1].slice(0,-1)
                         if( type.toLowerCase() == "module" ){
-                            olib["dc:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "sc:CreativeWork" }
+                            olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "sc:CreativeWork" }
                             olib["sc:applicationCategory"] = "Library"
                         }
                         if( type.toLowerCase() == "function" ){
@@ -715,7 +718,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                         if( !! authorName ){
                             authorName = authorName[0].split("authorName=")[1].slice(0,-1)
                         }
-                        let aobj = { '@type': 'Person' }
+                        let aobj = { '@type': 'schema:Person' }
                         aobj['@id'] = (!! authorUri) ? authorUri : '#'+authorName.toLowerCase().replaceAll(' ', '-')
                         if( !!authorName ){
                             aobj['sc:name'] = authorName
@@ -723,7 +726,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                         olib["sc:creator"] = aobj
                     }
                     
-                    deps["idList"].push( olib['@id'] )
+                    deps["idList"].push( { '@id': olib['@id'] } )
                     deps["resources"].push( olib )
                 }
             }
@@ -794,10 +797,10 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
             }
             
             let pannot = {
-              "@type": "FormalParameter",
+              "@type": "bsct:FormalParameter",
               "@id": `${ functionURI }_inputs_${subindex}`,
-              "dc:identifier": `${ functionURI }_inputs_${subindex}`,
-              "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+              "dct:identifier": `${ functionURI }_inputs_${subindex}`,
+              "dct:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
               "sc:name": p.name,
               "sc:encodingFormat": format,
               "sc:valueRequired": true
@@ -829,17 +832,17 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
                 format = "xsd:dateTime"
             }
             if( obj.return_.type.toLowerCase() == "object" ){
-                format = "edam:format_3464"
+                format = "http://edamontology.org/format_3464"
             }
             if( obj.return_.type.toLowerCase() == "array" ){
-                format = "edam:data_2082"
+                format = "http://edamontology.org/data_2082"
             }
             
             let oannot = {
-              "@type": "FormalParameter",
+              "@type": "bsct:FormalParameter",
               "@id": `${ functionURI }_outputs_${subindex}`,
-              "dc:identifier": `${ functionURI }_outputs_${subindex}`,
-              "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+              "dct:identifier": `${ functionURI }_outputs_${subindex}`,
+              "dct:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
               "sc:encodingFormat": format
             }
             if( obj.return_.description ){
@@ -886,10 +889,10 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         
         let typ = ""
         let olib = {  "@id": ( !! genAnot["identifier"] ) ? genAnot["identifier"] : `${artobj.url}#${genAnot.subtype}_${index}` }
-        olib["dc:identifier"] = olib["@id"]
+        olib["dct:identifier"] = olib["@id"]
         if( genAnot.type.toLowerCase() == "software" ){
             if( genAnot.subtype.toLowerCase() == "module" ){
-                olib["dc:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "CreativeWork" }
+                olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "CreativeWork" }
                 olib["sc:applicationCategory"] = "Library"
             }
             if( genAnot.subtype.toLowerCase() == "function" ){
@@ -901,6 +904,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         }
         if( !! genAnot["version"] ){
             olib["sc:softwareVersion"] = genAnot["version"]
+            olib["sc:isAccessibleForFree"] = true
         }
         if( !! genAnot["description"] ){
             olib["sc:description"] = genAnot["description"]
@@ -913,15 +917,15 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         }
         if( !! genAnot["authors"] ){
             olib["sc:creator"] = genAnot["authors"]["idList"]
-            for( let r in genAnot["authors"]["resources"] ){
+            for( let r of genAnot["authors"]["resources"] ){
                 if( artobj.graph["@graph"].filter( o => o["@id"] == r["@id"] ).length == 0 ){
                     artobj.graph["@graph"].push( r )
                 }
             }
         }
         if( !! genAnot["dependencies"] ){
-            olib["dc:requires"] = genAnot["dependencies"]["idList"]
-            for( let r in genAnot["dependencies"]["resources"] ){
+            olib["dct:requires"] = genAnot["dependencies"]["idList"]
+            for( let r of genAnot["dependencies"]["resources"] ){
                 if( artobj.graph["@graph"].filter( o => o["@id"] == r["@id"] ).length == 0 ){
                     artobj.graph["@graph"].push( r )
                 }
@@ -930,6 +934,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         
         if( !! genAnot["reference"] ){
             olib["rdfs:seeAlso"] = genAnot["reference"]
+            olib["sc:sameAs"] = genAnot["reference"]
         }
         if( !! genAnot["belongsTo"] ){
             olib["sc:isPartOf"] = { "@id": genAnot["belongsTo"] }
@@ -937,21 +942,21 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
             let parent = artobj.graph["@graph"].filter( n => n["@id"] == genAnot["belongsTo"] )
             if( parent.length > 0 ){
                 parent = parent[0]
-                if( ! parent.hasPart ) {
-                    parent.hasPart = []
+                if( ! parent["sc:hasPart"] ) {
+                    parent["sc:hasPart"] = []
                 }
-                parent.hasPart.push( { "@id": olib["@id"] } )
+                parent["sc:hasPart"].push( { "@id": olib["@id"] } )
             }
         }
         
         let libId = olib["@id"]
         let data = fairlibjs.genFunctionParametersAnnotation( details, genAnot["name"], libId )
-        console.log(genAnot["name"], data)
+        //console.log(genAnot["name"], genAnot['authors'])
         if( data.inputs.length>0 ){
-            olib["sc:inputs"] = data.inputs
+            olib["bsc:input"] = data.inputs
         }
         if( data.output.length>0 ){
-            olib["sc:outputs"] = data.output
+            olib["bsc:output"] = data.output
         }
         
         artobj.graph["@graph"].push( olib )
@@ -1090,7 +1095,7 @@ fairlibjs.searchPublication = async function (parameters) {
     })
     let ext = params.join("&")
     
-    var jsonld = { "@context": { "local": location.href.split("#")[0], "rdfs": "http://www.w3.org/2000/01/rdf-schema#", "sc": "http://schema.org/", "dc": "http://purl.org/dc/elements/1.1/", "bibo": "http://purl.org/ontology/bibo/", "@coerce": { "@iri": "contains" } }, "@graph": [] }
+    var jsonld = { "@context": { "local": location.href.split("#")[0], "rdfs": "http://www.w3.org/2000/01/rdf-schema#", "sc": "http://schema.org/", "dct": "http://purl.org/dc/elements/1.1/", "bibo": "http://purl.org/ontology/bibo/", "@coerce": { "@iri": "contains" } }, "@graph": [] }
     var objs = []
         
     if(ext!=""){
@@ -1112,7 +1117,7 @@ fairlibjs.searchPublication = async function (parameters) {
                 var name = c.textContent
                 authors.push( { name: name } )
             })
-            jsonld["@graph"].push( { "@type": "bibo:Article", "dc:identifier": id, "rdfs:seeAlso": `https://doi.org/${id}`, "dc:type": "Article", "rdfs:label": title, "dc:title": title, "dc:description": description, "dc:publisher": publisher, "dc:date": date, "bibo:authorList": authors.map( a => { return { "@id": `local:${a.name.toLowerCase().replaceAll(" ","-")}`, "@type": "sc:Person", "rdfs:label": a.name,  } } ) } )
+            jsonld["@graph"].push( { "@type": "bibo:Article", "dct:identifier": id, "rdfs:seeAlso": `https://doi.org/${id}`, "sc:sameAs": `https://doi.org/${id}`, "dct:type": "Article", "rdfs:label": title, "dct:title": title, "dct:description": description, "dct:publisher": publisher, "dct:date": date, "bibo:authorList": authors.map( a => { return { "@id": `local:${a.name.toLowerCase().replaceAll(" ","-")}`, "@type": "schema:Person", "rdfs:label": a.name,  } } ) } )
             objs.push( { identifier: id, title: title, authors: authors } )
         }
     }
