@@ -29,13 +29,15 @@
         </style>
         
         <script type="application/ld+json" id="jsonldPage" >
-            {
+           {
     "@context": {
         "local": "https://epiverse.github.io/modules/fairlibjs/",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "sc": "http://schema.org/",
         "cr": "https://w3id.org/ro/crate/1.1/context",
-        "dc": "http://purl.org/dc/elements/1.1/"
+        "dc": "http://purl.org/dc/elements/1.1/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "edam": "http://edamontology.org/"
     },
     "@graph": [
         {
@@ -50,6 +52,7 @@
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs.js",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs.js",
             "dc:conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
                 "@type": "CreativeWork"
@@ -63,40 +66,6 @@
                 "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
                 "sc:name": "Javascript"
             },
-            "sc:creator": [
-                {
-                    "@type": "Person",
-                    "sc:name": "Yasmmin Côrtes Martins",
-                    "sc:orcid": "0000-0002-6830-1948",
-                    "@id": "https://orcid.org/undefined"
-                }
-            ],
-            "dc:requires": [
-                {
-                    "@id": "./metrics-string.js",
-                    "sc:name": "String Similarity Library",
-                    "dc:conformsTo": {
-                        "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
-                        "@type": "CreativeWork"
-                    },
-                    "sc:applicationCategory": "Library",
-                    "sc:creator": {
-                        "@type": "Person",
-                        "@id": "https://sumn2u.medium.com/",
-                        "sc:name": "Suman Kunwar"
-                    }
-                },
-                {
-                    "@id": "./remove-markdown.js",
-                    "sc:name": "Markdown Removal",
-                    "sc:applicationCategory": "Script",
-                    "sc:creator": {
-                        "@type": "Person",
-                        "@id": "https://github.com/stiang/",
-                        "sc:name": "Stiang"
-                    }
-                }
-            ],
             "hasPart": [
                 {
                     "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1"
@@ -169,11 +138,15 @@
                 },
                 {
                     "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_25"
                 }
             ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1",
             "sc:applicationCategory": "Script",
             "sc:name": "evaluateAnnotation",
             "sc:description": "Calculate the matchings and the score obtained by comparing the list of predicted and curated annotations ",
@@ -183,10 +156,53 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "predicted",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "sc:valueRequired": true,
+                    "sc:description": "List of predicted annotations"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "real",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "sc:valueRequired": true,
+                    "sc:description": "List of curated annotations"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "cutoff",
+                    "sc:encodingFormat": "xsd:float",
+                    "sc:valueRequired": true,
+                    "sc:description": "Similarity cutoff value above which the pair of strings can be considered a match"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List containing the results of the overall number of matchings and the details of each predicted value with the max term similar from each available metric."
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2",
             "sc:applicationCategory": "Script",
             "sc:name": "performKeyExtranctionEdamMappingInBatch",
             "sc:description": "Perform keyword extraction and calculate similarity and map edam topic and operation concepts to the keywords in batch",
@@ -196,10 +212,43 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "url",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "URL of a json dataset containing a list of objects with at least one property (description) "
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "evaluate",
+                    "sc:encodingFormat": "xsd:boolean",
+                    "sc:valueRequired": true,
+                    "sc:description": "Flag that indicates whether if must evaluate the matchings of thepredicted keywords, topics and operations to the ones previously assigned. In case the value is true, there must be the properties keywords, topics and operations in each object from the list described above, with a string array as their values."
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List containing the original objects of the input with additional properties for evaluation and the predicted keywords, topics and operations."
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3",
             "sc:applicationCategory": "Script",
             "sc:name": "get_rake_keywords",
             "sc:description": "Calculate similarity and map edam topic and operation concepts to the keywords",
@@ -209,10 +258,54 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "fobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "FairLibWrapper object with the keywords already setted up"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "q",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Tool summary"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "score_cutoff",
+                    "sc:encodingFormat": "xsd:float",
+                    "sc:valueRequired": false,
+                    "sc:description": "Score cut off to consider keyword",
+                    "sc:defaultValue": "2"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of keywords from rake method"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4",
             "sc:applicationCategory": "Script",
             "sc:name": "parseEdamComponents",
             "sc:description": "Parse Edam ontology components",
@@ -222,10 +315,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "fobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "FairLibWrapper object"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of objects containing the id, name, parent and synonyms of the edam classes"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5",
             "sc:applicationCategory": "Script",
             "sc:name": "parseXmlCollection",
             "sc:description": "Parse HTML Collection retrieved from Edam XML ontology",
@@ -235,10 +351,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "collection",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Edam HTML tags collection filtered from raw XML file parsing"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of objects containing the id, name, parent and synonyms of the edam classes"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6",
             "sc:applicationCategory": "Script",
             "sc:name": "set_gpt_key",
             "sc:description": "Setup the open ai chat gpt key",
@@ -248,10 +387,23 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "key",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Open AI key"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7",
             "sc:applicationCategory": "Script",
             "sc:name": "completions",
             "sc:description": "Send question, context paragrpahs from monographs and the instruction to open ai chat gpt",
@@ -261,10 +413,55 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "messages",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "sc:valueRequired": true,
+                    "sc:description": "Array of objects required for the competion in the question answering system of openai chat gpt (role: assistant, user or system; content: personalized text according to the role)"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "model",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": false,
+                    "sc:description": "GPT model to use",
+                    "sc:defaultValue": "gpt-3.5-turbo"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "temperature",
+                    "sc:encodingFormat": "xsd:float",
+                    "sc:valueRequired": false,
+                    "sc:description": "Temperature (as you increase this number more random is the answer returned to you)",
+                    "sc:defaultValue": "0.7"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Openai answer object"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8",
             "sc:applicationCategory": "Script",
             "sc:name": "get_gpt_keywords",
             "sc:description": "Send summary text to chat gpt to extract keywords",
@@ -274,10 +471,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "q",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Tool summary"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of keywords from chat gpt"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9",
             "sc:applicationCategory": "Script",
             "sc:name": "get_rake_keywords",
             "sc:description": "Send summary text NLP RAKE method to extract keywords",
@@ -287,10 +507,54 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "fobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "FairLibWrapper object with the keywords already setted up"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "q",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Tool summary"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "score_cutoff",
+                    "sc:encodingFormat": "xsd:float",
+                    "sc:valueRequired": false,
+                    "sc:description": "Score cut off to consider keyword",
+                    "sc:defaultValue": "2"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of keywords from rake method"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10",
             "sc:applicationCategory": "Script",
             "sc:name": "get_rake_keywords",
             "sc:description": "Send summary text NLP RAKE method to extract keywords",
@@ -300,10 +564,54 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "fobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "FairLibWrapper object with the keywords already setted up"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "q",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Tool summary"
+                },
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "score_cutoff",
+                    "sc:encodingFormat": "xsd:float",
+                    "sc:valueRequired": false,
+                    "sc:description": "Score cut off to consider keyword",
+                    "sc:defaultValue": "2"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List of keywords from rake method"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_11",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_11",
             "sc:applicationCategory": "Script",
             "sc:name": "RocrateArtifact",
             "sc:description": "Initializes the Research Object Crate object",
@@ -317,6 +625,7 @@
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12",
             "sc:applicationCategory": "Script",
             "sc:name": "getLines",
             "sc:description": "Read and parse lines of the library source code",
@@ -326,10 +635,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "artobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Research Object Crate object"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "List containing the source code lines"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13",
             "sc:applicationCategory": "Script",
             "sc:name": "getSourceGeneralMeta",
             "sc:description": "Mine initial metadata (authors, name description and license) from the lines of the library source code",
@@ -339,10 +671,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "artobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Research Object Crate object"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "Object containing the mined annotations such as name, description, license, type and authors metadata (orcid and name)"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14",
             "sc:applicationCategory": "Script",
             "sc:name": "getSourceGeneralMeta",
             "sc:description": "Mine initial metadata (authors, name description and license) from the lines of the library source code",
@@ -352,13 +707,36 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "artobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Research Object Crate object"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:data_2082",
+                    "description": "Object containing the mined annotations such as name, description, license, type and authors metadata (orcid and name)"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_15",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_15",
             "sc:applicationCategory": "Script",
-            "sc:name": "genRoCrateLibAnnotation",
-            "sc:description": "Run and Use the annotations retrieved from the general metadata extraction funciton to feed the RO-Crate object",
+            "sc:name": "genFunctionParametersAnnotation",
+            "sc:description": "Generate the parameter annotations following bioschemas FormalParameter descriptors for the declared input and output in the library properties",
             "sc:programmingLanguage": {
                 "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
                 "sc:name": "Javascript"
@@ -369,19 +747,33 @@
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16",
             "sc:applicationCategory": "Script",
-            "sc:name": "saveFile",
-            "sc:description": "Open the file in download mode",
+            "sc:name": "genRoCrateLibAnnotation",
+            "sc:description": "Run and Use the annotations retrieved from the general metadata extraction funciton to feed the RO-Crate object",
             "sc:programmingLanguage": {
                 "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
                 "sc:name": "Javascript"
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "artobj",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Research Object Crate object"
+                }
+            ]
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_17",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_17",
             "sc:applicationCategory": "Script",
             "sc:name": "saveFile",
             "sc:description": "Open the file in download mode",
@@ -395,9 +787,10 @@
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_18",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_18",
             "sc:applicationCategory": "Script",
-            "sc:name": "searchResearchProduct",
-            "sc:description": "Retrieve OpenAire research products given general parameters",
+            "sc:name": "saveFile",
+            "sc:description": "Open the file in download mode",
             "sc:programmingLanguage": {
                 "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
                 "sc:name": "Javascript"
@@ -408,6 +801,43 @@
         },
         {
             "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchResearchProduct",
+            "sc:description": "Retrieve OpenAire research products given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for research product. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20",
             "sc:applicationCategory": "Script",
             "sc:name": "searchPublication",
             "sc:description": "Retrieve OpenAire publications given general parameters",
@@ -417,10 +847,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for publication. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
         },
         {
-            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20",
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21",
             "sc:applicationCategory": "Script",
             "sc:name": "searchData",
             "sc:description": "Retrieve OpenAire data given general parameters",
@@ -430,10 +883,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for data. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
         },
         {
-            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21",
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22",
             "sc:applicationCategory": "Script",
             "sc:name": "searchSoftware",
             "sc:description": "Retrieve OpenAire software given general parameters",
@@ -443,10 +919,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for software. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
         },
         {
-            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22",
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23",
             "sc:applicationCategory": "Script",
             "sc:name": "searchOther",
             "sc:description": "Retrieve OpenAire other contributions given general parameters",
@@ -456,10 +955,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for other product contributions. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
         },
         {
-            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23",
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24",
             "sc:applicationCategory": "Script",
             "sc:name": "searchProject",
             "sc:description": "Retrieve OpenAire projects given general parameters",
@@ -469,10 +991,33 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "parameters",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "sc:valueRequired": true,
+                    "sc:description": "Object containing the key parameters available for project. You may browse the valid attributes in fairlibjs.validOpenAireParams.general, fairlibjs.validOpenAireParams.product or reading the specifications in https://graph.openaire.eu/develop/api.html"
+                }
+            ],
+            "sc:outputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24_outputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24_outputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:encodingFormat": "edam:format_3464",
+                    "description": "Parsed Object containing the real values of the original xml returned by the API"
+                }
+            ]
         },
         {
-            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24",
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_25",
+            "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_25",
             "sc:applicationCategory": "Script",
             "sc:name": "loadScript",
             "sc:description": "Load a certain dependency library from link",
@@ -482,7 +1027,19 @@
             },
             "sc:isPartOf": {
                 "@id": "https://epiverse.github.io/modules/fairlibjs.js"
-            }
+            },
+            "sc:inputs": [
+                {
+                    "@type": "FormalParameter",
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_25_inputs_0",
+                    "dc:identifier": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_25_inputs_0",
+                    "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+                    "sc:name": "url",
+                    "sc:encodingFormat": "xsd:string",
+                    "sc:valueRequired": true,
+                    "sc:description": "Library URL."
+                }
+            ]
         }
     ]
 }
