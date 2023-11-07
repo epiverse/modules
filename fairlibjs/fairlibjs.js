@@ -552,7 +552,8 @@ RocrateArtifact = function ( sourceCodeUrl ) {
             "local": location.href.split("#")[0], 
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#", 
             "sc": "http://schema.org/", 
-            "dct": "http://purl.org/dc/elements/1.1/",
+            "dc": "http://purl.org/dc/elements/1.1/",
+            "dct": "http://purl.org/dc/terms/",
             "xsd": "http://www.w3.org/2001/XMLSchema#",
             "edam": "http://edamontology.org/",
             "bsct":"http://bioschemas.org/types/",
@@ -848,7 +849,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
               "sc:encodingFormat": format
             }
             if( obj.return_.description ){
-                oannot["description"] = obj.return_.description
+                oannot["sc:description"] = obj.return_.description
             }
             outputs.push( oannot )
             subindex += 1
@@ -1099,7 +1100,7 @@ fairlibjs.searchPublication = async function (parameters) {
     })
     let ext = params.join("&")
     
-    var jsonld = { "@context": { "local": location.href.split("#")[0], "rdfs": "http://www.w3.org/2000/01/rdf-schema#", "sc": "http://schema.org/", "dct": "http://purl.org/dc/elements/1.1/", "bibo": "http://purl.org/ontology/bibo/", "@coerce": { "@iri": "contains" } }, "@graph": [] }
+    var jsonld = { "@context": { "local": location.href.split("#")[0], "rdfs": "http://www.w3.org/2000/01/rdf-schema#", "sc": "http://schema.org/", "dct": "http://purl.org/dc/terms/", "bibo": "http://purl.org/ontology/bibo/", "@coerce": { "@iri": "contains" } }, "@graph": [] }
     var objs = []
         
     if(ext!=""){
