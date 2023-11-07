@@ -556,9 +556,10 @@ RocrateArtifact = function ( sourceCodeUrl ) {
             "xsd": "http://www.w3.org/2001/XMLSchema#",
             "edam": "http://edamontology.org/",
             "bsct":"http://bioschemas.org/types/",
-            "bsc":"http://bioschemas.org/"
+            "bsc":"http://bioschemas.org/",
+            "scoro": "http://purl.org/spar/scoro/"
         }, 
-        "@graph": [ { "@type": "sc:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
+        "@graph": [ { "@type": "schema:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
     }
     artifact.graph = core
     return artifact
@@ -674,11 +675,11 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                         aobj['sc:name'] = name[0].split("name=")[1].slice(0,-1)
                     }
                     if( !!orcid ){
-                        aobj['sc:orcid'] = orcid[0].split("orcid=")[1].slice(0,-1)
+                        aobj['scoro:hasORCID'] = orcid[0].split("orcid=")[1].slice(0,-1)
                     }
                     
                     if( ! aobj['@id'] ){
-                        aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['sc:orcid'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
+                        aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['scoro:hasORCID'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
                         aobj["dct:identifier"] = aobj["@id"]
                     }
                     
@@ -703,7 +704,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                     if( !!type ){
                         type = type[0].split("type=")[1].slice(0,-1)
                         if( type.toLowerCase() == "module" ){
-                            olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "sc:CreativeWork" }
+                            olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "schema:CreativeWork" }
                             olib["sc:applicationCategory"] = "Library"
                         }
                         if( type.toLowerCase() == "function" ){
@@ -893,7 +894,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         olib["dct:identifier"] = olib["@id"]
         if( genAnot.type.toLowerCase() == "software" ){
             if( genAnot.subtype.toLowerCase() == "module" ){
-                olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "CreativeWork" }
+                olib["dct:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "schema:CreativeWork" }
                 olib["sc:applicationCategory"] = "Library"
             }
             if( genAnot.subtype.toLowerCase() == "function" ){

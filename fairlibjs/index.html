@@ -38,11 +38,12 @@
         "xsd": "http://www.w3.org/2001/XMLSchema#",
         "edam": "http://edamontology.org/",
         "bsct": "http://bioschemas.org/types/",
-        "bsc": "http://bioschemas.org/"
+        "bsc": "http://bioschemas.org/",
+        "scoro": "http://purl.org/spar/scoro/"
     },
     "@graph": [
         {
-            "@type": "sc:CreativeWork",
+            "@type": "schema:CreativeWork",
             "@id": "ro-crate-metadata.json",
             "conformsTo": {
                 "@id": "https://w3id.org/ro/crate/1.1"
@@ -54,7 +55,7 @@
         {
             "@type": "schema:Person",
             "sc:name": "Yasmmin Côrtes Martins",
-            "sc:orcid": "0000-0002-6830-1948",
+            "scoro:hasORCID": "0000-0002-6830-1948",
             "@id": "https://orcid.org/0000-0002-6830-1948",
             "dct:identifier": "https://orcid.org/0000-0002-6830-1948"
         },
@@ -64,7 +65,7 @@
             "sc:name": "String Similarity Library",
             "dct:conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
-                "@type": "sc:CreativeWork"
+                "@type": "schema:CreativeWork"
             },
             "sc:applicationCategory": "Library",
             "sc:creator": {
@@ -99,7 +100,7 @@
             "dct:identifier": "https://epiverse.github.io/modules/fairlibjs.js",
             "dct:conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
-                "@type": "CreativeWork"
+                "@type": "schema:CreativeWork"
             },
             "sc:applicationCategory": "Library",
             "sc:name": "FAIRLibJs",
