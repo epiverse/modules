@@ -27,6 +27,466 @@
                 margin-right: 5px;
             }
         </style>
+        
+        <script type="application/ld+json" >
+            {
+    "@context": {
+        "local": "https://epiverse.github.io/modules/fairlibjs/",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "sc": "http://schema.org/",
+        "cr": "https://w3id.org/ro/crate/1.1/context",
+        "dc": "http://purl.org/dc/elements/1.1/"
+    },
+    "@graph": [
+        {
+            "@type": "cr:CreativeWork",
+            "@id": "ro-crate-metadata.json",
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            },
+            "about": {
+                "@id": "./"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs.js",
+            "dc:conformsTo": {
+                "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
+                "@type": "CreativeWork"
+            },
+            "sc:applicationCategory": "Library",
+            "sc:name": "FAIRLibJs",
+            "sc:softwareVersion": "0.1",
+            "sc:description": "Library to help annotating the research objects using RO-Crate metadata standards",
+            "sc:license": "https://spdx.org/licenses/mit",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:creator": [
+                {
+                    "@type": "Person",
+                    "sc:name": "Yasmmin Côrtes Martins",
+                    "sc:orcid": "0000-0002-6830-1948",
+                    "@id": "https://orcid.org/undefined"
+                }
+            ],
+            "dc:requires": [
+                {
+                    "@id": "./metrics-string.js",
+                    "sc:name": "String Similarity Library",
+                    "dc:conformsTo": {
+                        "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE",
+                        "@type": "CreativeWork"
+                    },
+                    "sc:applicationCategory": "Library",
+                    "sc:creator": {
+                        "@type": "Person",
+                        "@id": "https://sumn2u.medium.com/",
+                        "sc:name": "Suman Kunwar"
+                    }
+                },
+                {
+                    "@id": "./remove-markdown.js",
+                    "sc:name": "Markdown Removal",
+                    "sc:applicationCategory": "Script",
+                    "sc:creator": {
+                        "@type": "Person",
+                        "@id": "https://github.com/stiang/",
+                        "sc:name": "Stiang"
+                    }
+                }
+            ],
+            "hasPart": [
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_11"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_15"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_17"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_18"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23"
+                },
+                {
+                    "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24"
+                }
+            ]
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_1",
+            "sc:applicationCategory": "Script",
+            "sc:name": "evaluateAnnotation",
+            "sc:description": "Calculate the matchings and the score obtained by comparing the list of predicted and curated annotations ",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_2",
+            "sc:applicationCategory": "Script",
+            "sc:name": "performKeyExtranctionEdamMappingInBatch",
+            "sc:description": "Perform keyword extraction and calculate similarity and map edam topic and operation concepts to the keywords in batch",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_3",
+            "sc:applicationCategory": "Script",
+            "sc:name": "get_rake_keywords",
+            "sc:description": "Calculate similarity and map edam topic and operation concepts to the keywords",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_4",
+            "sc:applicationCategory": "Script",
+            "sc:name": "parseEdamComponents",
+            "sc:description": "Parse Edam ontology components",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_5",
+            "sc:applicationCategory": "Script",
+            "sc:name": "parseXmlCollection",
+            "sc:description": "Parse HTML Collection retrieved from Edam XML ontology",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_6",
+            "sc:applicationCategory": "Script",
+            "sc:name": "set_gpt_key",
+            "sc:description": "Setup the open ai chat gpt key",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_7",
+            "sc:applicationCategory": "Script",
+            "sc:name": "completions",
+            "sc:description": "Send question, context paragrpahs from monographs and the instruction to open ai chat gpt",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_8",
+            "sc:applicationCategory": "Script",
+            "sc:name": "get_gpt_keywords",
+            "sc:description": "Send summary text to chat gpt to extract keywords",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_9",
+            "sc:applicationCategory": "Script",
+            "sc:name": "get_rake_keywords",
+            "sc:description": "Send summary text NLP RAKE method to extract keywords",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_10",
+            "sc:applicationCategory": "Script",
+            "sc:name": "get_rake_keywords",
+            "sc:description": "Send summary text NLP RAKE method to extract keywords",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_11",
+            "sc:applicationCategory": "Script",
+            "sc:name": "RocrateArtifact",
+            "sc:description": "Initializes the Research Object Crate object",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_12",
+            "sc:applicationCategory": "Script",
+            "sc:name": "getLines",
+            "sc:description": "Read and parse lines of the library source code",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_13",
+            "sc:applicationCategory": "Script",
+            "sc:name": "getSourceGeneralMeta",
+            "sc:description": "Mine initial metadata (authors, name description and license) from the lines of the library source code",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_14",
+            "sc:applicationCategory": "Script",
+            "sc:name": "getSourceGeneralMeta",
+            "sc:description": "Mine initial metadata (authors, name description and license) from the lines of the library source code",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_15",
+            "sc:applicationCategory": "Script",
+            "sc:name": "genRoCrateLibAnnotation",
+            "sc:description": "Run and Use the annotations retrieved from the general metadata extraction funciton to feed the RO-Crate object",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_16",
+            "sc:applicationCategory": "Script",
+            "sc:name": "saveFile",
+            "sc:description": "Open the file in download mode",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_17",
+            "sc:applicationCategory": "Script",
+            "sc:name": "saveFile",
+            "sc:description": "Open the file in download mode",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_18",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchResearchProduct",
+            "sc:description": "Retrieve OpenAire research products given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_19",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchPublication",
+            "sc:description": "Retrieve OpenAire publications given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_20",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchData",
+            "sc:description": "Retrieve OpenAire data given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_21",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchSoftware",
+            "sc:description": "Retrieve OpenAire software given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_22",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchOther",
+            "sc:description": "Retrieve OpenAire other contributions given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_23",
+            "sc:applicationCategory": "Script",
+            "sc:name": "searchProject",
+            "sc:description": "Retrieve OpenAire projects given general parameters",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        },
+        {
+            "@id": "https://epiverse.github.io/modules/fairlibjs/fairlibjs.js#Function_24",
+            "sc:applicationCategory": "Script",
+            "sc:name": "loadScript",
+            "sc:description": "Load a certain dependency library from link",
+            "sc:programmingLanguage": {
+                "@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript",
+                "sc:name": "Javascript"
+            },
+            "sc:isPartOf": {
+                "@id": "https://epiverse.github.io/modules/fairlibjs.js"
+            }
+        }
+    ]
+}
+        </script>
     </head>
     
     <body>
