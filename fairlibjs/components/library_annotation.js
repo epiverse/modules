@@ -60,6 +60,7 @@ var get_libjsonld = function(){
                 result_libld.style.display = ''
                 let jsonld = roc.graph
                 jsonContentLib.value = JSON.stringify(jsonld, undefined, 4) 
+                jsonldPage.innerHTML = jsonContentLib.value
                 d3.jsonldVis(jsonld, "#libGraphld")
             }
         })

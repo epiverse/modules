@@ -676,6 +676,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                     
                     if( ! aobj['@id'] ){
                         aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['orcid'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
+                        aobj["dc:identifier"] = aobj["@id"]
                     }
                     
                     authors["idList"].push( aobj['@id'] )
@@ -692,6 +693,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                 
                 if( !!uri ){
                     let olib = { '@id': uri[0].split("uri=")[1].slice(0,-1) }
+                    olib["dc:identifier"] = olib["@id"]
                     if( !!name ){
                         olib['sc:name'] = name[0].split("name=")[1].slice(0,-1)
                     }
@@ -794,6 +796,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
             let pannot = {
               "@type": "FormalParameter",
               "@id": `${ functionURI }_inputs_${subindex}`,
+              "dc:identifier": `${ functionURI }_inputs_${subindex}`,
               "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
               "sc:name": p.name,
               "sc:encodingFormat": format,
@@ -834,6 +837,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
             let oannot = {
               "@type": "FormalParameter",
               "@id": `${ functionURI }_outputs_${subindex}`,
+              "dc:identifier": `${ functionURI }_outputs_${subindex}`,
               "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
               "sc:encodingFormat": format
             }
@@ -880,6 +884,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         
         let typ = ""
         let olib = {  "@id": ( !! genAnot["identifier"] ) ? genAnot["identifier"] : `${artobj.url}#${genAnot.subtype}_${index}` }
+        olib["dc:identifier"] = olib["@id"]
         if( genAnot.type.toLowerCase() == "software" ){
             if( genAnot.subtype.toLowerCase() == "module" ){
                 olib["dc:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "CreativeWork" }
@@ -939,7 +944,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         
         let libId = olib["@id"]
         let data = fairlibjs.genFunctionParametersAnnotation( details, genAnot["name"], libId )
-        //console.log(data)
+        console.log(genAnot["name"], data)
         if( data.inputs.length>0 ){
             olib["sc:inputs"] = data.inputs
         }
