@@ -724,6 +724,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                             aobj['sc:name'] = authorName
                         }
                         olib["sc:creator"] = aobj
+                        olib["dct:creator"] = aobj
                     }
                     
                     deps["idList"].push( { '@id': olib['@id'] } )
