@@ -551,8 +551,7 @@ RocrateArtifact = function ( sourceCodeUrl ) {
         "@context": { 
             "local": location.href.split("#")[0], 
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#", 
-            "sc": "http://schema.org/", 
-            "dc": "http://purl.org/dc/elements/1.1/",
+            "sc": "http://schema.org/",
             "dct": "http://purl.org/dc/terms/",
             "xsd": "http://www.w3.org/2001/XMLSchema#",
             "edam": "http://edamontology.org/",
