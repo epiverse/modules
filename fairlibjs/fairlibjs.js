@@ -918,6 +918,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         }
         if( !! genAnot["authors"] ){
             olib["sc:creator"] = genAnot["authors"]["idList"]
+            olib["dct:creator"] = genAnot["authors"]["idList"]
             for( let r of genAnot["authors"]["resources"] ){
                 if( artobj.graph["@graph"].filter( o => o["@id"] == r["@id"] ).length == 0 ){
                     artobj.graph["@graph"].push( r )
