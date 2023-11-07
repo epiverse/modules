@@ -911,6 +911,7 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
         }
         if( !! genAnot["license"] ){
             olib["sc:license"] = `https://spdx.org/licenses/${genAnot["license"]}`
+            olib["dct:license"] = `https://spdx.org/licenses/${genAnot["license"]}`
         }
         if( artobj.url.split(".").slice(-1)[0].toLowerCase().includes("js") ){
             olib["sc:programmingLanguage"] = {"@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript", "sc:name": "Javascript" }
