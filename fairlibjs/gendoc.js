@@ -1,4 +1,15 @@
-
+ /**
+ *
+ *
+ * @meta.type Software
+ * @meta.subtype Module
+ * @meta.name GenDoc
+ * @meta.description Parser of documentation comentary strings along the code and html renderization of the library features
+ * @meta.license mit
+ * @meta.author [name=Yasmmin Martins] [identifier=https://sumn2u.medium.com/]
+ *
+ */
+ 
 gendoc={ 'lines': [], 'targets': [], 'properties': [], 'objects': [], 'propertyDetails': []}
 
 gendoc.getLines= async (url) =>{
@@ -177,6 +188,10 @@ gendoc.buildTableProperties = () => {
 }
 
 gendoc.getDetails = (remote_host) => {
+    if( gendoc.targets.length == 0 ){
+        gendoc.getProperties()
+    }
+    
     var props=[]
     var init=false
     var initExample=false

@@ -80,7 +80,7 @@ let fairlibjs = { validOpenAireParams: { general: ["page","size","format","model
 var FairLibWrapper = async function ( ){
     var obj = {}
     
-    obj = await Promise.all( [ ( fairlibjs.parseEdamComponents(obj) ), (import("https://cdn.jsdelivr.net/npm/pos@0.4.2/+esm")), ( fairlibjs.loadScript( location.href+'metrics-string.js' ) ), ( fairlibjs.loadScript( location.href+'remove-markdown.js' ) ), ( fairlibjs.loadScript("https://cdn.jsdelivr.net/npm/@shopping24/rake-js@2.2.1/dist/extract.min.js") ) ] ).then( libs => {
+    obj = await Promise.all( [ ( fairlibjs.parseEdamComponents(obj) ), (import("https://cdn.jsdelivr.net/npm/pos@0.4.2/+esm")), ( fairlibjs.loadScript( location.href+'metrics-string.js' ) ), ( fairlibjs.loadScript( location.href+'gendoc.js' ) ), ( fairlibjs.loadScript( location.href+'remove-markdown.js' ) ), ( fairlibjs.loadScript("https://cdn.jsdelivr.net/npm/@shopping24/rake-js@2.2.1/dist/extract.min.js") ) ] ).then( libs => {
         obj['edam'] = libs[0]
         obj['pos'] = libs[1]
         
@@ -232,8 +232,17 @@ fairlibjs.mapEdamWithKeywords = (fobj) => {
             let temp = []
             fobj.edam[t].forEach( cls => {
               let jarosim = mean( cls.synonyms.concat(cls.name).map( s => JaroWrinkler(s, k) ) )
-              let levsim = mean( cls.synonyms.concat(cls.name).map( s => ( LevenshteinDistance(s, k) / k.length ) ) )
+              
+              let levsim = mean( cls.synonyms.concat(cls.name).map( s => { 
+                let den = s; 
+                if( s.length < k.length ){
+                  den = k;
+                }
+                return ( (1 - (LevenshteinDistance(s, k) / den.length ) ) ); 
+              } ) )
+              
               let csim = mean( cls.synonyms.concat(cls.name).map( s => CosineSimilarity(s, k) ) )
+              
               let trigsim = mean( cls.synonyms.concat(cls.name).map( s => { 
                 let trig = TrigramIndex( [k] )
                 let sim = ( trig.find(s).length > 0 ) ? trig.find(s)[0].matches / s.length : 0
@@ -538,7 +547,17 @@ fairlibjs.get_rake_keywords = (fobj, q, score_cutoff = 2) => {
 */
 RocrateArtifact = function ( sourceCodeUrl ) {
     var artifact = { url: sourceCodeUrl, graph: {} }
-    var core = {"@context": { "local": location.href.split("#")[0], "rdfs": "http://www.w3.org/2000/01/rdf-schema#", "sc": "http://schema.org/", "cr": "https://w3id.org/ro/crate/1.1/context", "dc": "http://purl.org/dc/elements/1.1/" }, "@graph": [ {"@type": "cr:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": {"@id": "https://w3id.org/ro/crate/1.1"}, "about": {"@id":"./"} } ] }
+    var core = {
+        "@context": { 
+            "local": location.href.split("#")[0], 
+            "rdfs": "http://www.w3.org/2000/01/rdf-schema#", 
+            "sc": "http://schema.org/", "cr": "https://w3id.org/ro/crate/1.1/context", 
+            "dc": "http://purl.org/dc/elements/1.1/",
+            "xsd": "http://www.w3.org/2001/XMLSchema#",
+            "edam": "http://edamontology.org/"
+        }, 
+        "@graph": [ { "@type": "cr:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
+    }
     artifact.graph = core
     return artifact
 }
@@ -599,13 +618,14 @@ fairlibjs.getLines = async (artobj) =>{
 fairlibjs.getSourceGeneralMeta = async function(artobj){
     if( ! artobj.lines ){
         await fairlibjs.getLines(artobj)
+        gendoc.lines = artobj.lines
     }
     
     let annotations = []
     
     let genAnnot = {}
-    let authors = []
-    let deps = []
+    let authors = { "idList": [], "resources": [] }
+    let deps = { "idList": [], "resources": [] }
     let keys = ["identifier", "type", "subtype", "name", "description", "license", "belongsTo", "reference", "version"]
     var flag = false
     for( let l of artobj.lines ){
@@ -658,7 +678,8 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                         aobj['@id'] = (!!orcid) ? 'https://orcid.org/'+aobj['orcid'] : '#'+aobj['name'].toLowerCase().replaceAll(' ', '-')
                     }
                     
-                    authors.push( aobj )
+                    authors["idList"].push( aobj['@id'] )
+                    authors["resources"].push( aobj )
                 }
             }
             
@@ -700,7 +721,8 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                         olib["sc:creator"] = aobj
                     }
                     
-                    deps.push( olib )
+                    deps["idList"].push( olib['@id'] )
+                    deps["resources"].push( olib )
                 }
             }
         }
@@ -708,13 +730,122 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
         if(l.includes("/*")){
             flag = true
             genAnnot = {}
-            authors = []
-            deps = []
+            authors = { "idList": [], "resources": [] }
+            deps = { "idList": [], "resources": [] }
         }
     }
     
     
     return annotations
+}
+
+/** 
+ * @meta.belongsTo https://epiverse.github.io/modules/fairlibjs.js
+ * @meta.type Software
+ * @meta.subtype Function
+ * @meta.name genFunctionParametersAnnotation
+ * @meta.description Generate the parameter annotations following bioschemas FormalParameter descriptors for the declared input and output in the library properties
+*
+*
+* Generate the parameter annotations following bioschemas FormalParameter descriptors for the declared input and output in the library properties
+* 
+* @async
+* @function genFunctionParametersAnnotation 
+* @memberof fairlibjs
+*
+* @param {Object} details Object containing the details of the found properties of the library
+* @param {string} functionName Name of the function to retrieve the input and output parameters
+* @param {string} functionURI Function description URI
+*
+* @returns {Array} Object containing the mined annotations of inputs and outputs, if they exist for the given function
+* 
+* 
+* @example
+* let robj = RocrateArtifact( location.href.split('#')[0]+'fairlibjs.js' )
+* var annotations = await fairlibjs.getSourceGeneralMeta(robj)
+* let details = gendoc.propertyDetails
+* let data = fairlibjs.genFunctionParametersAnnotation( details, "getSourceGeneralMeta" )
+*/
+fairlibjs.genFunctionParametersAnnotation = function(details, functionName, functionURI){
+    let dataflowAnnotations = { "inputs": [], "output": [] }
+    
+    let obj = details.filter( d => d.name.includes(functionName) )[0]
+    if( obj!=undefined ){
+        let subindex = 0
+        let inputs = []
+        for( let p of obj.params ){
+            let format = "xsd:string"
+            if( p.type == "number" ){
+                format = "xsd:float"
+            }
+            if( p.type == "boolean" ){
+                format = "xsd:boolean"
+            }
+            if( p.type.toLowerCase() == "datetime" ){
+                format = "xsd:dateTime"
+            }
+            if( p.type.toLowerCase() == "object" ){
+                format = "edam:format_3464"
+            }
+            if( p.type.toLowerCase() == "array" ){
+                format = "edam:data_2082"
+            }
+            
+            let pannot = {
+              "@type": "FormalParameter",
+              "@id": `${ functionURI }_inputs_${subindex}`,
+              "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+              "sc:name": p.name,
+              "sc:encodingFormat": format,
+              "sc:valueRequired": true
+            }
+            if( p.description ){
+                pannot["sc:description"] = p.description
+            }
+            if( p.default ){
+                pannot["sc:defaultValue"] = p.default
+                pannot["sc:valueRequired"] = false
+            }
+            
+            inputs.push( pannot )
+        }
+        dataflowAnnotations["inputs"] = inputs
+        
+        let outputs = []
+        subindex = 0
+        if( obj.return_.type ){
+            let format = "xsd:string"
+            if( obj.return_.type == "number" ){
+                format = "xsd:float"
+            }
+            if( obj.return_.type == "boolean" ){
+                format = "xsd:boolean"
+            }
+            if( obj.return_.type.toLowerCase() == "datetime" ){
+                format = "xsd:dateTime"
+            }
+            if( obj.return_.type.toLowerCase() == "object" ){
+                format = "edam:format_3464"
+            }
+            if( obj.return_.type.toLowerCase() == "array" ){
+                format = "edam:data_2082"
+            }
+            
+            let oannot = {
+              "@type": "FormalParameter",
+              "@id": `${ functionURI }_outputs_${subindex}`,
+              "dc:conformsTo": "https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE",
+              "sc:encodingFormat": format
+            }
+            if( obj.return_.description ){
+                oannot["description"] = obj.return_.description
+            }
+            outputs.push( oannot )
+        }
+        dataflowAnnotations["output"] = outputs
+    }
+    
+    return dataflowAnnotations
 }
 
 /** 
@@ -739,7 +870,9 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
 * await fairlibjs.genRoCrateLibAnnotation(robj)
 */
 fairlibjs.genRoCrateLibAnnotation = async function(artobj){
-    var annotations = await fairlibjs.getSourceGeneralMeta(artobj)
+    let annotations = await fairlibjs.getSourceGeneralMeta(artobj)
+    gendoc.getDetails("")
+    let details = gendoc.propertyDetails
     
     let index=0
     for( let genAnot of annotations ){
@@ -772,10 +905,20 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
             olib["sc:programmingLanguage"] = {"@id": "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript", "sc:name": "Javascript" }
         }
         if( !! genAnot["authors"] ){
-            olib["sc:creator"] = genAnot["authors"]
+            olib["sc:creator"] = genAnot["authors"]["idList"]
+            for( let r in genAnot["authors"]["resources"] ){
+                if( artobj.graph["@graph"].filter( o => o["@id"] == r["@id"] ).length == 0 ){
+                    artobj.graph["@graph"].push( r )
+                }
+            }
         }
         if( !! genAnot["dependencies"] ){
-            olib["dc:requires"] = genAnot["dependencies"]
+            olib["dc:requires"] = genAnot["dependencies"]["idList"]
+            for( let r in genAnot["dependencies"]["resources"] ){
+                if( artobj.graph["@graph"].filter( o => o["@id"] == r["@id"] ).length == 0 ){
+                    artobj.graph["@graph"].push( r )
+                }
+            }
         }
         
         if( !! genAnot["reference"] ){
@@ -792,6 +935,16 @@ fairlibjs.genRoCrateLibAnnotation = async function(artobj){
                 }
                 parent.hasPart.push( { "@id": olib["@id"] } )
             }
+        }
+        
+        let libId = olib["@id"]
+        let data = fairlibjs.genFunctionParametersAnnotation( details, genAnot["name"], libId )
+        //console.log(data)
+        if( data.inputs.length>0 ){
+            olib["sc:inputs"] = data.inputs
+        }
+        if( data.output.length>0 ){
+            olib["sc:outputs"] = data.output
         }
         
         artobj.graph["@graph"].push( olib )

@@ -12,7 +12,7 @@ Resources:
     https://www.jsdelivr.com/package/npm/rdflib
     https://crs4.github.io/life_monitor/workflow_testing_ro_crate.html
     https://biotools.readthedocs.io/en/latest/api_reference.html
-    
+    https://bio.tools/api/tool/SignalP?format=json
 Study:
     organize module/library -> functions -> dependencies across functions    
     extend FormalParameter, including a property dependsOn. http://spinrdf.org/sp#variable
