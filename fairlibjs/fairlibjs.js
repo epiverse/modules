@@ -551,12 +551,12 @@ RocrateArtifact = function ( sourceCodeUrl ) {
         "@context": { 
             "local": location.href.split("#")[0], 
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#", 
-            "sc": "http://schema.org/", "cr": "https://w3id.org/ro/crate/1.1/context", 
+            "sc": "http://schema.org/", 
             "dc": "http://purl.org/dc/elements/1.1/",
             "xsd": "http://www.w3.org/2001/XMLSchema#",
             "edam": "http://edamontology.org/"
         }, 
-        "@graph": [ { "@type": "cr:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
+        "@graph": [ { "@type": "sc:CreativeWork", "@id": "ro-crate-metadata.json", "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" }, "about": { "@id": "./" } } ] 
     }
     artifact.graph = core
     return artifact
@@ -700,7 +700,7 @@ fairlibjs.getSourceGeneralMeta = async function(artobj){
                     if( !!type ){
                         type = type[0].split("type=")[1].slice(0,-1)
                         if( type.toLowerCase() == "module" ){
-                            olib["dc:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "CreativeWork" }
+                            olib["dc:conformsTo"] = { "@id": "https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE", "@type": "sc:CreativeWork" }
                             olib["sc:applicationCategory"] = "Library"
                         }
                         if( type.toLowerCase() == "function" ){
@@ -773,7 +773,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
     
     let obj = details.filter( d => d.name.includes(functionName) )[0]
     if( obj!=undefined ){
-        let subindex = 0
+        let subindex = 1
         let inputs = []
         for( let p of obj.params ){
             let format = "xsd:string"
@@ -811,6 +811,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
             }
             
             inputs.push( pannot )
+            subindex += 1
         }
         dataflowAnnotations["inputs"] = inputs
         
@@ -845,6 +846,7 @@ fairlibjs.genFunctionParametersAnnotation = function(details, functionName, func
                 oannot["description"] = obj.return_.description
             }
             outputs.push( oannot )
+            subindex += 1
         }
         dataflowAnnotations["output"] = outputs
     }
